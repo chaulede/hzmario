@@ -1,0 +1,5461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Super Mario: Easy Steps Curriculum Adventure</title>
+<style>
+  * { box-sizing: border-box; touch-action: manipulation; }
+  body {
+    margin: 0;
+    padding: 10px 0;
+    background: #11121a;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #header {
+    width: 980px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+  }
+  .hud-badge {
+    background: #202232;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid #3d405b;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+  }
+  .header-btns {
+    display: flex;
+    gap: 10px;
+  }
+  #btn-replay {
+    cursor: pointer;
+    background: #e63946;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 13px;
+    box-shadow: 0 4px #9d0208;
+    transition: transform 0.1s;
+  }
+  #btn-replay:hover { transform: translateY(-2px); }
+  #btn-replay:active { transform: translateY(2px); box-shadow: 0 2px #9d0208; }
+
+  #btn-admin-skip {
+    cursor: pointer;
+    background: #8338ec;
+    color: #fff;
+    border: 2px solid #c77dff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 13px;
+    box-shadow: 0 4px #5a189a;
+    transition: transform 0.1s;
+  }
+  #btn-admin-skip:hover { transform: translateY(-2px); background: #9d4edd; }
+  #btn-admin-skip:active { transform: translateY(2px); box-shadow: 0 2px #5a189a; }
+
+  #game-container {
+    position: relative;
+    width: 980px;
+    height: 450px;
+    background: #5c94fc;
+    border: 4px solid #111;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+    transition: background 0.4s;
+  }
+
+  .ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 64px;
+    background: 
+      linear-gradient(45deg, #d35400 25%, transparent 25%, transparent 75%, #d35400 75%),
+      linear-gradient(45deg, #d35400 25%, transparent 25%, transparent 75%, #d35400 75%),
+      #e67e22;
+    background-size: 16px 16px;
+    background-position: 0 0, 8px 8px;
+    border-top: 6px solid #27ae60;
+    z-index: 10;
+  }
+
+  .ground.world-2-ground {
+    background: 
+      radial-gradient(circle at 4px 4px, #4a1900 2px, transparent 2px),
+      radial-gradient(circle at 12px 12px, #fce4d6 1.5px, transparent 1.5px),
+      linear-gradient(45deg, #a64219 25%, #c85a2b 25%, #c85a2b 50%, #a64219 50%, #a64219 75%, #c85a2b 75%);
+    background-size: 16px 16px;
+    border-top: 4px solid #000;
+  }
+
+  .ground.world-3-water {
+    background: #3bb2ff;
+    border-top: none;
+  }
+  .ground.world-3-water::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background: radial-gradient(circle at 8px 0, transparent 8px, #fff 9px, #fff 11px, transparent 12px);
+    background-size: 16px 12px;
+  }
+
+  .ground.world-4-grass {
+    background: #50d060;
+    background-image: radial-gradient(circle, #000 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+    border-top: 4px solid #000;
+  }
+
+  .ground.world-5-rocky {
+    background: 
+      radial-gradient(circle at 4px 4px, #000 2.5px, transparent 3px),
+      radial-gradient(circle at 12px 12px, #fff 1.5px, transparent 2px),
+      linear-gradient(45deg, #d35400 25%, #e67e22 25%, #e67e22 50%, #a04000 50%, #a04000 75%, #e67e22 75%);
+    background-size: 16px 16px;
+    border-top: 4px solid #000;
+  }
+
+  .ground.world-8-ground {
+    background: 
+      linear-gradient(45deg, #b84418 25%, transparent 25%, transparent 75%, #b84418 75%),
+      linear-gradient(45deg, #b84418 25%, transparent 25%, transparent 75%, #b84418 75%),
+      #c85a2b;
+    background-size: 16px 16px;
+    border-top: 4px solid #000;
+  }
+
+  .ground.world-7-ground {
+    background: 
+      linear-gradient(45deg, #d98880 25%, transparent 25%, transparent 75%, #d98880 75%),
+      linear-gradient(45deg, #d98880 25%, transparent 25%, transparent 75%, #d98880 75%),
+      #e59866;
+    background-size: 16px 16px;
+    background-position: 0 0, 8px 8px;
+    border-top: 6px solid #27ae60;
+  }
+
+  #left-big-castle, #right-small-castle {
+    position: absolute;
+    bottom: 64px;
+    z-index: 8;
+    pointer-events: none;
+  }
+  #left-big-castle { left: 0; width: 140px; height: 250px; }
+  #right-small-castle { left: 840px; width: 130px; height: 140px; }
+
+  #mario {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    bottom: 64px;
+    left: 88px;
+    transform-origin: bottom center;
+    image-rendering: pixelated;
+    z-index: 15;
+  }
+  .mario-pixel {
+    width: 1px;
+    height: 1px;
+    background: transparent;
+    box-shadow:
+      3px 1px #d62828, 4px 1px #d62828, 5px 1px #d62828, 6px 1px #d62828, 7px 1px #d62828,
+      2px 2px #d62828, 3px 2px #d62828, 4px 2px #d62828, 5px 2px #d62828, 6px 2px #d62828, 7px 2px #d62828, 8px 2px #d62828, 9px 2px #d62828,
+      2px 3px #5e3023, 3px 3px #5e3023, 4px 3px #5e3023, 5px 3px #f4a261, 6px 3px #000, 7px 3px #f4a261,
+      1px 4px #5e3023, 2px 4px #f4a261, 3px 4px #5e3023, 4px 4px #f4a261, 5px 4px #f4a261, 6px 4px #f4a261, 7px 4px #000, 8px 4px #f4a261, 9px 4px #f4a261, 10px 4px #f4a261,
+      1px 5px #5e3023, 2px 5px #f4a261, 3px 5px #5e3023, 4px 5px #5e3023, 5px 5px #f4a261, 6px 5px #f4a261, 7px 5px #f4a261, 8px 5px #000, 9px 5px #000, 10px 5px #000,
+      2px 6px #5e3023, 3px 6px #f4a261, 4px 6px #f4a261, 5px 6px #f4a261, 6px 6px #f4a261, 7px 6px #f4a261, 8px 6px #f4a261,
+      3px 7px #d62828, 4px 7px #d62828, 5px 7px #d62828, 6px 7px #d62828, 7px 7px #d62828,
+      2px 8px #d62828, 3px 8px #d62828, 4px 8px #0077b6, 5px 8px #d62828, 6px 8px #d62828, 7px 8px #0077b6, 8px 8px #d62828, 9px 8px #d62828,
+      1px 9px #d62828, 2px 9px #d62828, 3px 9px #0077b6, 4px 9px #0077b6, 5px 9px #0077b6, 6px 9px #0077b6, 7px 9px #0077b6, 8px 9px #0077b6, 9px 9px #d62828, 10px 9px #d62828,
+      1px 10px #f4a261, 2px 10px #f4a261, 3px 10px #0077b6, 4px 10px #fcbf49, 5px 10px #0077b6, 6px 10px #0077b6, 7px 10px #fcbf49, 8px 10px #0077b6, 9px 10px #f4a261, 10px 10px #f4a261,
+      3px 11px #0077b6, 4px 11px #0077b6, 5px 11px #0077b6, 6px 11px #0077b6, 7px 11px #0077b6, 8px 11px #0077b6,
+      2px 12px #0077b6, 3px 12px #0077b6, 4px 12px #0077b6, 5px 12px #0077b6, 6px 12px #0077b6, 7px 12px #0077b6, 8px 12px #0077b6, 9px 12px #0077b6,
+      2px 13px #5e3023, 3px 13px #5e3023, 4px 13px #5e3023, 7px 13px #5e3023, 8px 13px #5e3023, 9px 13px #5e3023,
+      1px 14px #5e3023, 2px 14px #5e3023, 3px 14px #5e3023, 7px 14px #5e3023, 8px 14px #5e3023, 9px 14px #5e3023, 10px 14px #5e3023;
+  }
+
+  .solid-brick {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    background: #b84418;
+    border: 2px solid #000;
+    box-shadow: inset 0 4px 0 #fce4d6, inset 0 -4px 0 #5c1800;
+    background-image: 
+      linear-gradient(to bottom, transparent 26px, #000 26px, #000 28px, transparent 28px),
+      linear-gradient(to right, transparent 26px, #000 26px, #000 28px, transparent 28px);
+    z-index: 6;
+  }
+  .solid-brick.hit-bounce { animation: blockBounce 0.16s ease-out; }
+
+  .slab-brick {
+    position: absolute;
+    background: #b84418;
+    border: 3px solid #000;
+    box-shadow: inset 0 6px 0 #fce4d6, inset 0 -5px 0 #5c1800;
+    z-index: 6;
+  }
+  .slab-brick::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 18px;
+    bottom: 5px;
+    width: 3px;
+    background: #000;
+  }
+
+  .bevel-block {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: #c66020;
+    border: 3px solid #000;
+    box-shadow: inset 3px 3px 0 #fcd0a1, inset -3px -3px 0 #5c1800;
+    z-index: 5;
+  }
+
+  .block {
+    position: absolute;
+    min-width: 60px;
+    height: 56px;
+    background: #fc9838;
+    border: 3px solid #000;
+    border-radius: 4px;
+    box-shadow: inset 3px 3px 0 #ffe0b2, inset -3px -3px 0 #b35900;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #4a2800;
+    cursor: pointer;
+    z-index: 7;
+    transition: width 0.1s ease-out;
+    padding: 1px 4px;
+    overflow: hidden;
+  }
+  .block-zh-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+  }
+  .block-text-char {
+    font-size: 21px;
+    font-weight: 900;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.45);
+  }
+  .block.multi-char .block-text-char { font-size: 16px; }
+
+  .block-sub-en {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1f0e02;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+    margin-top: 1px;
+    line-height: 1.1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    letter-spacing: -0.2px;
+  }
+
+  .block::before, .block::after {
+    content: ""; position: absolute; width: 3px; height: 3px; background: #000; z-index: 2;
+  }
+  .block::before { top: 2px; left: 2px; }
+  .block::after { bottom: 2px; left: 2px; }
+  .block-corner-dots {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+  }
+  .block-corner-dots::before, .block-corner-dots::after {
+    content: ""; position: absolute; width: 3px; height: 3px; background: #000;
+  }
+  .block-corner-dots::before { top: 2px; right: 2px; }
+  .block-corner-dots::after { bottom: 2px; right: 2px; }
+
+  .block.w4-strip-block {
+    background: #fc9838;
+    border-radius: 4px;
+    box-shadow: inset 3px 3px 0 #ffe0b2, inset -3px -3px 0 #b35900;
+    border: 3px solid #000;
+  }
+
+  .block.hit-bounce { animation: blockBounce 0.16s ease-out; }
+  @keyframes blockBounce {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+    100% { transform: translateY(0); }
+  }
+
+  .hint-fly-pop {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.95);
+    color: #00ffff;
+    font-size: 20px;
+    font-weight: 900;
+    padding: 6px 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+    border: 3px solid #f39c12;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.7);
+    animation: hintFlyUp 0.9s ease-out forwards;
+    pointer-events: none;
+    z-index: 50;
+  }
+  @keyframes hintFlyUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    30% { transform: translateY(-35px) scale(1.15); opacity: 1; }
+    100% { transform: translateY(-80px) scale(1); opacity: 0; }
+  }
+
+  .piranha-plant {
+    position: absolute;
+    width: 36px;
+    height: 48px;
+    z-index: 6;
+    pointer-events: none;
+    transition: transform 0.05s linear;
+  }
+  .piranha-head {
+    width: 36px;
+    height: 32px;
+    animation: piranhaChomp 0.45s infinite alternate ease-in-out;
+    transform-origin: bottom center;
+  }
+  @keyframes piranhaChomp {
+    0% { transform: scaleY(0.85); }
+    100% { transform: scaleY(1.05); }
+  }
+
+  .hammer-bro {
+    position: absolute;
+    width: 32px;
+    height: 44px;
+    z-index: 9;
+    image-rendering: pixelated;
+  }
+  .hammer-bro.flattened {
+    transform: scaleY(0.4) translateY(24px) !important;
+  }
+
+  .stage5-enemy {
+    position: absolute;
+    z-index: 9;
+    image-rendering: pixelated;
+  }
+  .stage5-enemy.flattened {
+    transform: scaleY(0.3) translateY(18px) !important;
+  }
+
+  .goomba {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    bottom: 58px;
+    transform: scale(2.5);
+    transform-origin: bottom center;
+    image-rendering: pixelated;
+    z-index: 9;
+  }
+  .goomba-pixel {
+    width: 1px;
+    height: 1px;
+    background: transparent;
+    box-shadow:
+      6px 1px #9c4100, 7px 1px #9c4100, 8px 1px #9c4100, 9px 1px #9c4100,
+      5px 2px #9c4100, 6px 2px #9c4100, 7px 2px #9c4100, 8px 2px #9c4100, 9px 2px #9c4100, 10px 2px #9c4100,
+      4px 3px #9c4100, 5px 3px #9c4100, 6px 3px #9c4100, 7px 3px #9c4100, 8px 3px #9c4100, 9px 3px #9c4100, 10px 3px #9c4100, 11px 3px #9c4100,
+      3px 4px #9c4100, 4px 4px #9c4100, 5px 4px #fff, 6px 4px #000, 7px 4px #9c4100, 8px 4px #9c4100, 9px 4px #000, 10px 4px #fff, 11px 4px #9c4100, 12px 4px #9c4100,
+      2px 5px #9c4100, 3px 5px #9c4100, 4px 5px #fff, 5px 5px #fff, 6px 5px #000, 7px 5px #9c4100, 8px 5px #9c4100, 9px 5px #000, 10px 5px #fff, 11px 5px #fff, 12px 5px #9c4100, 13px 5px #9c4100,
+      1px 6px #9c4100, 2px 6px #9c4100, 3px 6px #9c4100, 4px 6px #fff, 5px 6px #000, 6px 6px #9c4100, 7px 6px #9c4100, 8px 6px #9c4100, 9px 6px #9c4100, 10px 6px #000, 11px 6px #fff, 12px 6px #9c4100, 13px 6px #9c4100, 14px 6px #9c4100,
+      1px 7px #9c4100, 2px 7px #9c4100, 3px 7px #9c4100, 4px 7px #9c4100, 5px 7px #9c4100, 6px 7px #9c4100, 7px 7px #9c4100, 8px 7px #9c4100, 9px 7px #9c4100, 10px 7px #9c4100, 11px 7px #9c4100, 12px 7px #9c4100, 13px 7px #9c4100, 14px 7px #9c4100,
+      4px 8px #ffd8a8, 5px 8px #ffd8a8, 6px 8px #ffd8a8, 7px 8px #ffd8a8, 8px 8px #ffd8a8, 9px 8px #ffd8a8, 10px 8px #ffd8a8, 11px 8px #ffd8a8,
+      3px 9px #ffd8a8, 4px 9px #ffd8a8, 5px 9px #ffd8a8, 6px 9px #ffd8a8, 7px 9px #ffd8a8, 8px 9px #ffd8a8, 9px 9px #ffd8a8, 10px 9px #ffd8a8, 11px 9px #ffd8a8, 12px 9px #ffd8a8,
+      2px 10px #ffd8a8, 3px 10px #ffd8a8, 4px 10px #ffd8a8, 5px 10px #ffd8a8, 6px 10px #ffd8a8, 7px 10px #ffd8a8, 8px 10px #ffd8a8, 9px 10px #ffd8a8, 10px 10px #ffd8a8, 11px 10px #ffd8a8, 12px 10px #ffd8a8, 13px 10px #ffd8a8,
+      1px 11px #000, 2px 11px #000, 3px 11px #000, 4px 11px #000, 5px 11px #ffd8a8, 6px 11px #ffd8a8, 7px 11px #ffd8a8, 8px 11px #ffd8a8, 9px 11px #ffd8a8, 10px 11px #ffd8a8, 11px 11px #000, 12px 11px #000, 13px 11px #000, 14px 11px #000,
+      1px 12px #000, 2px 12px #000, 3px 12px #000, 4px 12px #000, 5px 12px #000, 10px 12px #000, 11px 12px #000, 12px 12px #000, 13px 12px #000, 14px 12px #000;
+  }
+  .goomba.flattened {
+    transform: scaleX(2.5) scaleY(0.65) translateY(12px) !important;
+  }
+
+  #cleared-banner, #gameover-banner {
+    display: none;
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.92);
+    border: 4px solid #ffd700;
+    padding: 18px 40px;
+    border-radius: 12px;
+    color: #fff;
+    text-align: center;
+    z-index: 100;
+  }
+  #gameover-banner { border-color: #e63946; }
+  #cleared-banner h2 { margin: 0 0 6px 0; color: #ffd700; font-size: 24px; }
+  #gameover-banner h2 { margin: 0 0 6px 0; color: #e63946; font-size: 28px; letter-spacing: 2px; }
+  #cleared-banner p, #gameover-banner p { margin: 0; font-size: 14px; color: #eee; }
+
+  #ipad-touch-controller {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 980px;
+    background: #171923;
+    padding: 12px 20px;
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 2px solid #2d3748;
+  }
+  .d-pad { display: flex; gap: 15px; }
+  .pad-btn {
+    width: 75px; height: 55px; background: #2b6cb0; color: white;
+    font-size: 18px; font-weight: bold; border: none; border-radius: 10px;
+    box-shadow: 0 4px #1a365d; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .pad-btn:active { background: #3182ce; transform: translateY(2px); box-shadow: 0 2px #1a365d; }
+  .action-pad { display: flex; gap: 15px; }
+  .action-btn {
+    width: 110px; height: 55px; background: #dd6b20; color: white;
+    font-size: 16px; font-weight: bold; border: none; border-radius: 10px;
+    box-shadow: 0 4px #9c4221; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .action-btn:active { background: #ed8936; transform: translateY(2px); box-shadow: 0 2px #9c4221; }
+
+  #controls {
+    width: 980px;
+    background: #202232;
+    padding: 14px 20px;
+    margin-top: 10px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .control-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+  }
+  .control-row label {
+    color: #edf2f4;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 170px;
+  }
+  select, input[type="text"], input[type="file"] {
+    padding: 7px 12px;
+    border: 2px solid #4a4e69;
+    background: #15161f;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+  }
+  select { cursor: pointer; }
+  input[type="text"] { flex: 1; }
+  input[type="file"] { flex: 1; cursor: pointer; }
+  
+  .btn-base {
+    background: #2a9d8f; color: white; border: none; padding: 7px 14px;
+    border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 13px;
+  }
+  .btn-base:hover { background: #21867a; }
+  .btn-accent { background: #e76f51; }
+  .btn-accent:hover { background: #d45d3f; }
+  .btn-danger { background: #e63946; }
+  .btn-danger:hover { background: #d90429; }
+
+  .tip {
+    width: 980px; color: #8d99ae; font-size: 12px; margin-top: 6px; text-align: center;
+  }
+
+  @media screen and (max-width: 1024px) {
+    body { transform: scale(0.98); transform-origin: top center; }
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="hud-badge">
+    <span>🚩 <span id="txt-world">World 1-1</span></span>
+    <span>❤️ <span id="hearts">❤️❤️❤️</span></span>
+    <span>🪙 <strong id="score" style="color: #ffd700;">0</strong></span>
+    <span>🎯 Progress: <strong id="progress" style="color: #48bfe3;">1/20</strong></span>
+  </div>
+  <div class="header-btns">
+    <button id="btn-replay" onclick="playAudio()">🌸 🔊 <span id="txt-listen">Listen (Press R)</span></button>
+    <button id="btn-admin-skip" onclick="adminSkipLevel()" title="Shortcut: Press N on keyboard">⚡ Skip Level (Press N)</button>
+  </div>
+</div>
+
+<div id="game-container">
+  <div id="left-castle-container"></div>
+  <div id="right-castle-container"></div>
+  <div id="world2-decorations"></div>
+  <div id="piranha-container"></div>
+  <div id="hammer-bro-container"></div>
+
+  <div id="mario"><div class="mario-pixel"></div></div>
+  <div id="bricks-layout-container"></div>
+
+  <div class="goomba" id="goomba1" style="left: 390px;"><div class="goomba-pixel"></div></div>
+  <div class="goomba" id="goomba2" style="left: 750px;"><div class="goomba-pixel"></div></div>
+
+  <div id="cleared-banner">
+    <h2>🎉 COURSE CLEAR!</h2>
+    <p>Theme Mastered! Loading next curriculum stage...</p>
+  </div>
+
+  <div id="gameover-banner">
+    <h2>GAME OVER</h2>
+    <p>All lives exhausted! Restarting challenge...</p>
+  </div>
+
+  <div class="ground" id="stage-ground"></div>
+</div>
+
+<div id="ipad-touch-controller">
+  <div class="d-pad">
+    <button class="pad-btn" id="btn-left">⬅️ Left</button>
+    <button class="pad-btn" id="btn-right">Right ➡️</button>
+  </div>
+  <div class="action-pad">
+    <button class="action-btn" id="btn-jump">⬆️ Jump</button>
+  </div>
+</div>
+
+<div id="controls">
+  <div class="control-row">
+    <label id="txt-series-label">教材体系选择:</label>
+    <select id="series-select" onchange="onSeriesChange()">
+      <option value="HSK1">HSK 1</option>
+      <option value="HSK2">HSK 2</option>
+      <option value="HSK3">HSK 3</option>
+      <option value="HSK4">HSK 4</option>
+      <option value="YCT1">YCT 1</option>
+      <option value="YCT2">YCT 2</option>
+      <option value="YCT3">YCT 3</option>
+      <option value="YCT4">YCT 4</option>
+      <option value="YCT5">YCT 5</option>
+      <option value="YCT6">YCT 6</option>
+      <option value="estcV1_1A">estcV1 1A</option>
+      <option value="estcV1_1B">estcV1 1B</option>
+      <option value="estcV1_2A">estcV1 2A</option>
+      <option value="estcV1_2B">estcV1 2B</option>
+      <option value="estcV1_3A">estcV1 3A</option>
+      <option value="estcV1_3B">estcV1 3B</option>
+      <option value="estcV1_4A">estcV1 4A</option>
+      <option value="estcV1_4B">estcV1 4B</option>
+      <option value="ESTC">ESTC</option>
+      <option value="EasySteps">Easy Steps</option>
+    </select>
+  </div>
+
+  <div class="control-row">
+    <label id="txt-preset-label">Curriculum Theme:</label>
+    <select id="preset-select" onchange="onPresetChange()"></select>
+  </div>
+  
+  <div class="control-row">
+    <label id="txt-upload-label">Upload Vocabulary File:</label>
+    <input type="file" id="vocab-file-input" accept=".txt,.docx,.csv,.json" onchange="handleVocabFileUpload(event)">
+    <button class="btn-base" onclick="document.getElementById('vocab-file-input').click()">📁 Upload File</button>
+    <button class="btn-base btn-danger" onclick="deleteCurrentCustomVocab()">🗑️ 删除当前词库</button>
+  </div>
+
+  <div class="control-row">
+    <label id="txt-eng-label">Dictionary Quick Search:</label>
+    <input type="text" id="english-input" placeholder="Search English meaning (e.g. apple, panda, teacher)..." onkeydown="if(event.key==='Enter') addEnglishWordFromEudic()">
+    <button id="btn-add-eng" class="btn-base btn-accent" onclick="addEnglishWordFromEudic()">📖 Search & Add</button>
+  </div>
+
+  <div class="control-row">
+    <label id="txt-custom-label">Current Stage Vocabulary:</label>
+    <input type="text" id="custom-words" value="">
+    <button id="btn-apply" class="btn-base" onclick="updateWords()">Update Vocab</button>
+  </div>
+</div>
+
+<div class="tip" id="txt-tip">
+  Rule: Practice EVERY character/word in the current textbook theme to clear the stage and advance! (Admin: Press 'N' to skip)
+</div>
+
+<script>
+// 内置多体系词库合并，已将 estcV1 按照 1A-4B 目录规范完整内置
+const multiSeriesRawData = {
+  "HSK1": `
+Lesson 1
+你好 - hello
+大家 - everybody
+好 - good; fine
+学生 - student
+们 -
+老师 - teacher
+您 - you
+你们 - you
+谢谢 - thank you
+不客气 - you're welcome
+同学 - classmate
+再见 - goodbye
+
+Lesson 2
+请问 - excuse me
+你 - you
+叫 - be called as
+什么 - what
+名字 - name
+我 - I; me
+不 - not; no
+是 - be
+对不起 - sorry
+没关系 - never mind
+没事 - it doesn't matter
+很 - very
+高兴 - glad; happy
+认识 - know
+也 - also; too
+
+Lesson 3
+人 - human; person
+的 - of
+这 - this
+谁 - who
+女朋友 - girlfriend
+哪 - which
+国 - country
+她 - she; her
+喂 - hello; hey
+姐姐 - elder sister
+工作 - job / work
+还 - still
+忙 - busy
+吗 - ?
+对 - right
+太 - too; excessively
+我们 - we; us
+想 - miss
+
+Lesson 4
+有 - have
+多少 - how many/much
+个 - a / an
+哥哥 - elder brother
+呢 - ?
+没有 - not have
+家 - family
+几 - how many
+口 - for family members
+爸爸 - father
+妈妈 - mother
+妹妹 - younger sister
+和 - and
+儿子 - son
+孩子 - children
+女儿 - daughter
+岁 - year
+他 - he; him
+今年 - this year
+多 - how
+大 - old
+
+Lesson 5
+今天 - today
+号 - date
+月 - month
+日 - day
+星期 - week
+星期日 - Sunday
+星期天 - Sunday
+休息 - have a rest
+会 - can; be able to
+做饭 - cook
+做 - make; produce
+面条儿 - noodles
+饺子 - jiaozi
+一些 - some; a few
+菜 - dish; course
+下班 - get off work
+新 - new
+电脑 - computer
+真 - really; truly
+好看 - good-looking; nice
+喜欢 - like
+它 - it
+
+Lesson 6
+手机 - cell phone
+电话 - telephone
+号 - number
+明天 - tomorrow
+去 - go to
+哪儿 - where
+想 - want; would like
+超市 - supermarket
+买 - buy
+东西 - thing
+些 - some; a few
+牛奶 - milk
+吃 - eat; have
+晚饭 - dinner; supper
+那边 - there
+包子 - steamed stuffed bun
+非常 - very; extremely
+好吃 - tasty; delicious
+米饭 - rice
+怎么 - how
+坐 - take; travel by or on
+出租车 - taxi
+
+Lesson 7
+现在 - now
+点 - o'clock
+早上 - morning
+上午 - morning
+分 - minute
+课 - class; lesson
+下午 - afternoon
+见 - meet
+吧 - right?
+电影院 - cinema
+看 - watch; see
+电影 - movie; film
+事 - thing; affair
+上课 - attend a class
+呢 - ?
+半 - half
+下课 - dismiss a class
+在 - be at/in/on
+家 - home
+里 - inside
+晚上 - evening
+医院 - hospital
+上班 - go to work
+店 - shop; store
+菜 - vegetable; greens
+分钟 - minute
+后 - after; later
+
+Lesson 8
+房间 - room
+外 - outside
+只 - for certain animals
+小 - small; little
+猫 - cat
+没 - no; not
+看见 - see
+桌子 - table; desk
+下 - under
+漂亮 - pretty; beautiful
+在 - at/in
+学校 - school
+书店 - bookstore
+前 - front
+能 - can; be able to
+到 - arrive; reach
+午饭 - lunch
+饭 - meal
+大 - big; large
+病人 - patient
+多 - many; much
+医生 - doctor
+工作 - work
+
+Lesson 9
+前边 - front
+边 - edge; side
+家 - family
+那个 - that
+外边 - outside
+椅子 - chair
+上 - on
+本 - for books
+书 - book
+那 - that
+第 - prefix for ordinal numbers
+学习 - study; learn
+做 - do
+白天 - day; daytime
+读书 - read a book
+和 - with
+朋友 - friend
+唱 - sing
+歌 - song
+好听 - pleasant to hear
+电视 - television
+狗 - dog
+玩 - play; have fun
+
+Lesson 10
+杯子 - cup; glass
+售货员 - shop assistant
+这边 - here; this side
+钱 - money
+这些 - these
+块 - piece / yuan
+那些 - those
+这儿 - here
+水果 - fruit
+少 - few; little
+斤 - jin
+苹果 - apple
+便宜 - cheap; affordable
+商店 - shop; store
+衣服 - clothes
+件 - piece
+元 - yuan
+怎么样 - how
+贵 - expensive
+穿 - wear; put on
+女 - female; woman
+男 - male; man
+那儿 - there; that place
+
+Lesson 11
+时候 - time
+饭店 - restaurant
+知道 - know; realize
+正在 - in the process of
+找 - look for
+开车 - drive
+车 - vehicle
+在 - in/at
+读 - study
+大学 - university; college
+大学生 - college/university student
+学 - study; learn
+医 - medicine
+弟弟 - younger brother
+起床 - get up
+睡觉 - sleep
+睡 - sleep
+那里 - there; that place
+哪里 - where
+昨天 - yesterday
+问 - ask
+对 - to; towards
+说 - speak; talk; say
+要 - want; wish
+小朋友 - child; kid
+
+Lesson 12
+天气 - weather
+这里 - here
+天 - weather
+下雨 - rain
+了 - particle
+雨 - rain
+有点儿 - rather; a bit
+觉得 - feel
+冷 - cold
+下 - fall
+雪 - snow
+来 - come
+公司 - company
+生病 - fall ill; be sick
+看病 - see a doctor
+病 - fall ill; be sick
+一点儿 - some
+药 - medicine
+天 - day
+回 - return; go back
+再 - then; only then
+喝 - drink
+热 - hot; warm
+水 - water
+
+Lesson 13
+可以 - can; may
+再 - once more; again
+问题 - question; problem
+卖 - sell
+打电话 - make a phone call
+一下 - one time; once
+服务员 - attendant; waiter
+女士 - lady; madam
+请 - please
+坐 - sit
+给 - give
+杯 - cup; glass
+要 - demand; ask for
+早饭 - breakfast
+这个 - this
+面包 - bread
+鸡蛋 - egg
+先生 - gentleman; sir
+一半 - one half; half
+茶 - tea
+
+Lesson 14
+上 - go up; get on; board
+火车 - train
+中午 - noon
+开 - depart; leave
+有些 - some
+有的 - some
+写 - write
+都 - all; both
+听见 - hear
+不要 - don't
+说话 - say; speak; talk
+听 - listen to; hear
+哪些 - which
+字 - character; word
+明年 - next year
+中学 - middle school
+小学 - primary school
+中学生 - middle school student
+小学生 - primary school student
+上学 - start school; go to school
+他们 - they; them
+她们 - they; them
+它们 - they; them
+晚 - late
+汉语 - Chinese language
+汉字 - Chinese character
+
+Lesson 15
+爱 - like; be fond of
+哪个 - which
+去年 - last year
+男朋友 - boyfriend
+几 - a few; several
+年 - year
+好玩儿 - fun; interesting
+飞机 - plane
+要 - need; take
+小时 - hour
+家人 - family
+时间 - time
+机场 - airport
+接 - meet; welcome
+住 - live; stay
+早 - early
+那 - then
+`,
+  "HSK2": `
+LESSON 1
+还是 - had better
+接 - meet; welcome; receive
+让 - let; allow
+给 - to; for
+就 - exactly; precisely
+次 - time; occurrence
+旅游 - travel; make a tour
+帮忙 - help
+不好意思 - find it embarrassing
+已经 - already
+那 - then
+介绍 - introduce
+有时 - sometimes
+懂 - understand; know
+意思 - meaning; idea
+北京烤鸭 - Peking Duck
+
+LESSON 2
+公交车 - bus
+但 - but; yet
+车站 - stop; station
+远 - far away
+打车 - take/hail a taxi
+还是 - had better
+万 - ten thousand
+名 - name
+网上 - online
+外国 - foreign country
+间 - room unit
+教室 - classroom
+票 - ticket
+别 - don't
+过来 - come here
+北京大学 - Peking University
+
+LESSON 3
+回来 - come back
+这么 - so
+完 - end; complete
+一起 - together
+出去 - go/get out
+洗 - wash
+自己 - oneself
+拿 - take; hold
+手 - hand
+为什么 - why
+不错 - not bad
+送 - give as a gift
+回去 - return
+每 - each
+累 - tired
+
+LESSON 4
+过 - past/spend
+商场 - department store
+进去 - go in
+条 - for long objects
+裤子 - trousers
+白色 - white
+because - because
+试 - try
+红色 - red
+所以 - so
+书包 - schoolbag
+过去 - pass by
+绿色 - green
+黑色 - black
+更 - more
+颜色 - color
+
+LESSON 5
+快 - fast
+下来 - come down
+上来 - come up
+上去 - go up
+下面 - downstairs
+等 - wait
+一会儿 - soon
+下去 - go down
+进来 - come in
+爷爷 - grandfather
+奶奶 - grandmother
+礼物 - gift
+准备 - prepare
+奶茶 - bubble tea
+跟 - with
+走 - walk
+酒店 - hotel
+
+LESSON 6
+生日 - birthday
+忘 - forget
+画 - draw
+画笔 - paintbrush
+蛋糕 - cake
+快乐 - happy
+打开 - open
+长 - long
+鱼 - fish
+肉 - meat
+过 - spend time
+地 - adverb marker
+床 - bed
+舒服 - comfortable
+
+LESSON 7
+从 - from
+往 - towards
+跑 - run
+打 - play
+篮球 - basketball
+运动 - sports
+踢 - kick
+足球 - football
+球 - ball
+得 - complement particle
+跑步 - run
+游泳 - swim
+游 - swim
+爱好 - hobby
+开始 - start
+
+LESSON 8
+手表 - watch
+左边 - left
+左 - left
+比 - than
+右边 - right
+右 - right
+记得 - remember
+爱情片 - romantic movie
+有意思 - interesting
+点 - select
+虽然 - though
+但是 - but
+花 - spend
+妻子 - wife
+丈夫 - husband
+饭馆 - restaurant
+
+LESSON 9
+坏 - bad
+旁边 - side
+男孩儿 - boy
+这样 - this
+个子 - height
+那么 - like that
+高 - tall
+门口 - doorway
+咖啡 - coffee
+离 - away from
+近 - close
+走路 - walk
+周 - week
+
+LESSON 10
+开学 - begin
+门 - door
+后面 - back
+笔 - pen
+帮 - help
+考试 - exam
+词 - word
+本子 - notebook
+错 - wrong
+题 - question
+还是 - or
+考 - take exam
+快要 - about to
+笑 - smile
+
+LESSON 11
+头 - head
+疼 - hurt
+经常 - often
+动 - move
+着 - continuation
+路上 - road
+慢 - slow
+进 - come into
+药 - medicine
+身体 - body
+时 - time
+最 - most
+药店 - pharmacy
+
+LESSON 12
+事情 - matter
+晴 - sunny
+正 - just happening
+outside - outside
+阴 - cloudy
+从小 - since childhood
+地铁 - subway
+楼 - building
+站 - station
+小时候 - childhood
+好 - quite
+
+LESSON 13
+新年 - New Year
+教 - teach
+花 - flower
+希望 - hope
+上面 - surface
+洗手间 - restroom
+里面 - inside
+笔 - stroke
+可能 - probably
+上网 - go online
+那样 - so
+告诉 - tell
+班 - class
+
+LESSON 14
+站 - stand
+包 - bag
+过年 - celebrate Spring Festival
+没意思 - boring
+位 - polite measure word
+前面 - front
+房子 - house
+小孩儿 - child
+女孩儿 - girl
+姓 - surnamed
+眼睛 - eye
+跳舞 - dance
+
+LESSON 15
+姓名 - name
+出国 - go abroad
+门票 - ticket
+高中 - high school
+出门 - leave home
+路 - road
+机场 - airport
+机票 - air ticket
+飞 - fly
+`,
+  "HSK3": `
+LESSON 1
+以为 - think; consider
+像 - be like
+长 - grow; develop
+身高 - height
+米 - meter
+瘦 - thin
+接 - meet; pick up
+行李 - luggage
+丢 - lose
+箱子 - case; trunk
+号码 - number
+好像 - seemingly
+重要 - important
+着急 - worried
+护照 - passport
+服务台 - service desk
+应该 - should
+站 - stand
+中间 - middle
+短 - short (in length)
+头发 - hair
+年轻 - young
+发现 - discover; find
+帮助 - help
+不见 - be lost
+照片 - photo
+带 - take; bring; have
+
+LESSON 2
+菜单 - menu
+又 - and
+饿 - hungry
+渴 - thirsty
+客气 - be polite; polite
+饮料 - drink
+好久 - for a long time
+服务 - serve
+员 - person
+双 - pair
+筷子 - chopsticks
+勺子 - spoon
+碗 - bowl
+马上 - immediately
+热情 - warm
+尝 - taste
+记 - remember
+用 - eat; drink; use
+鸡 - chicken
+选 - choose
+张 - used for paper, paintings, etc.
+外卖 - takeout; offer a takeout service
+不用 - need not
+方便 - convenient
+蛋糕 - cake
+只 - only
+方便面 - instant noodles
+简单 - simple
+
+LESSON 3
+初中 - middle school
+咱们 - we; us
+换 - change
+房子 - house
+小区 - residential complex
+环境 - surroundings; environment
+挺 - quite; very
+空调 - air conditioner
+洗衣机 - washing machine
+层 - floor
+花园 - garden
+灯 - light
+关 - turn off
+冰箱 - refrigerator; fridge
+卫生间 - bathroom
+打扫 - clean
+搬家 - move (house)
+办 - do; handle
+信用卡 - credit card
+还 - return
+听说 - hear about
+银行 - bank
+才 - not until
+纸 - paper
+搬 - move
+需要 - need; want
+
+LESSON 4
+假期 - vacation; holiday
+海 - sea
+草原 - grassland
+主意 - idea
+骑 - ride
+马 - horse
+羊 - sheep; goat
+月亮 - moon
+一定 - certainly
+刻 - quarter (of an hour)
+起飞 - take off
+宾馆 - hotel
+特别 - special; especially
+别的 - other
+一样 - the same
+牛 - cattle
+相机 - camera
+欢迎 - welcome
+司机 - driver
+晚点 - (of a train, ship, etc.) be late
+久 - long
+除了 - except; besides; other than
+以外 - except
+先 - first
+一直 - all along
+干净 - clean
+满意 - be satisfied
+
+LESSON 5
+总是 - always
+终于 - finally
+爬 - climb
+山 - mountain; hill
+锻炼 - take exercise
+照 - take a picture
+鞋 - shoe
+大衣 - overcoat
+拍照 - take a picture
+感兴趣 - be interested in
+照相 - take a picture
+难看 - bad-looking; ugly
+比较 - compare; relatively
+水平 - level
+太阳 - sun
+树 - tree
+干 - do
+电 - electricity
+收到 - receive
+封 - for letters or mail
+音乐 - music
+兴趣 - interest
+会 - gathering; party
+邮件 - email
+难过 - sad
+结束 - finish
+哈哈 - haha
+
+LESSON 6
+該 - should
+打算 - plan; intention
+高铁 - high-speed train
+行 - be all right; capable
+路口 - intersection; crossing
+小心 - take care; careful
+迟到 - be late
+红绿灯 - traffic lights
+后来 - afterward; later
+急 - urgent; be anxious
+如果 - if
+以前 - earlier times
+耳机 - earphone; headphone
+充电宝 - power bank
+常用 - commonly used
+越 - the more... the more...
+分开 - separate
+检查 - check (up); inspect
+刷 - scan
+检票 - check/inspect tickets
+电梯 - elevator; escalator
+放假 - have a vacation
+安静 - quiet
+选择 - choose
+必须 - have to; must
+沙发 - sofa
+
+LESSON 7
+辆 - for vehicles
+自行车 - bicycle; bike
+旧 - old
+矮 - low (in height); short (in stature)
+试 - try
+黄色 - yellow
+短裤 - shorts
+大小 - size
+合适 - suitable
+裙子 - skirt
+更 - more; still/even more
+决定 - decide; decision
+西瓜 - watermelon
+新鲜 - fresh
+甜 - sweet
+公斤 - kilogram
+冰 - freeze; ice
+极 - extremely
+斤 - jin
+香蕉 - banana
+一共 - in all
+毛 - mao
+结婚 - marry
+声 - used for sounds; sound
+开机 - start; be power-on
+不但 - not only
+而且 - also; but
+
+LESSON 8
+最近 - lately; recently
+常 - often
+体育馆 - gymnasium
+习惯 - habit; be used to
+胖 - fat
+健康 - healthy
+以后 - after; afterward
+羽毛球 - badminton
+耳朵 - ear
+感冒 - catch a cold; cold
+发烧 - have a fever
+低 - low
+关心 - be concerned about
+注意 - pay attention to
+突然 - sudden
+住院 - be in hospital
+担心 - worry
+腿 - leg
+病人 - patient
+差不多 - almost; similar
+得 - need; have to
+开心 - happy
+出院 - (of a patient) leave hospital
+方法 - method
+开 - prescribe
+其他 - other
+种 - kind; type
+心里 - mind; heart
+
+LESSON 9
+校园 - campus
+卡 - card
+球场 - court
+为了 - for
+运动会 - sports meet
+男生 - boy student
+练 - practice
+参加 - join; take part in
+网球 - tennis
+比赛 - match; have a match
+练习 - practice; exercise
+好多 - a lot of
+几乎 - almost
+只是 - just; only
+啤酒 - beer
+回 - (used for happenings or events) piece
+紧张 - nervous
+得分 - score (points)
+主要 - main; major
+受到 - be subjected to
+影响 - effect; affect
+体育 - sports
+世界 - world
+运动员 - athlete
+得到 - get
+成绩 - result; achievement
+
+LESSON 10
+数学 - mathematics; maths
+认真 - conscientious
+笔记 - notes
+清楚 - clear; know
+黑板 - blackboard
+把 - used to advance the object of a verb to the position before it
+作业 - homework
+遍 - (for actions) once through; one time
+提高 - improve; enhance
+
+LESSON 11
+还是 - or
+或者 - or
+看来 - it seems
+没办法 - have no way/alternative
+解决 - solve; resolve
+问题 - question; problem
+對 - to; toward
+来说 - as for
+
+LESSON 12
+季节 - season
+变化 - change
+块 - fast; quick
+气温 - air temperature
+度 - degree
+刮风 - blow (wind)
+风 - wind
+经常 - frequently; often
+蓝天 - blue sky
+朵 - (for flowers, clouds, etc.)
+白云 - white cloud
+太阳 - sun
+暖和 - warm
+舒服 - comfortable
+伞 - umbrella
+
+LESSON 13
+邻居 - neighbor
+来自 - come from
+英国 - United Kingdom
+见面 - meet
+欢迎 - welcome
+了解 - understand
+热情 - warm; enthusiastic
+聊 - chat
+声音 - sound; voice
+音乐 - music
+动听 - pleasant to hear
+
+LESSON 14
+借 - borrow; lend
+别人 - other people
+走 - walk; leave
+电子邮件 - email
+回答 - reply; answer
+完 - finish; complete
+哭 - cry
+忘 - forget
+语法 - grammar
+题 - question; problem
+
+LESSON 15
+半 - half
+南京 - Nanjing
+本地人 - local resident
+地方 - place
+历史 - history
+文化 - culture
+导游 - tour guide
+介绍 - introduce
+决定 - decide
+
+LESSON 16
+熊猫 - panda
+出国 - go abroad
+动物园 - zoo
+动物 - animal
+聪明 - smart; clever
+可爱 - cute
+黑白 - black and white
+颜色 - color
+世界 - world
+关于 - about; regarding
+
+LESSON 17
+认真 - earnest; serious
+经理 - manager
+办公室 - office
+严肃 - serious; solemn
+经验 - experience
+认真 - conscientious
+只有 - only if
+才 - not until; only then
+
+LESSON 18
+包 - wrap; bag
+饺子 - jiaozi (dumplings)
+刚才 - just now
+刚刚 - just
+只要 - as long as
+玫瑰 - rose
+节日 - festival; holiday
+幸福 - happy; happiness
+`,
+  "HSK4": `
+LESSON 1
+签证 - visa
+入学 - enter a school/college
+通知 - notify (sb of sth); notice
+证件 - papers
+材料 - material; reference material
+证 - certificate
+任何 - any
+食堂 - dining hall
+座 - for mountains, buildings, and other similar immovable objects
+申请 - apply for
+奖学金 - scholarship
+压力 - pressure
+表现 - perform; behave
+获得 - win; obtain
+加油 - cheer; step up efforts
+随着 - along with
+课程 - course
+专业 - major; professional
+本科 - undergraduate course
+硕士 - master
+研究生 - postgraduate; graduate student
+博士 - doctor
+研究 - study; research
+活动 - activity; move about
+通过 - through; pass
+交流 - exchange
+适应 - adapt to
+将来 - future
+当 - work as
+教育 - education; educate
+国际 - international; world
+贸易 - trade
+方面 - aspect; respect
+教师 - teacher
+知识 - knowledge
+成为 - become
+另 - another; other
+
+LESSON 2
+房东 - landlord/landlady
+出租 - rent out
+房租 - house rent
+收拾 - tidy up; clear away
+租 - rent
+嗯 - mhm; yes
+亮 - bright; shine
+就是 - used usually with "了" at the end of a sentence to give force to the statement
+种 - plant
+周围 - surroundings
+不过 - but; however
+毕业 - graduate
+恐怕 - perhaps
+热闹 - bustling with noise and excitement; excitement
+入住 - move into (a new house); check into (a hotel)
+日记 - diary
+顺利 - successful; smooth
+并 - and; what's more; actually; definitely
+客厅 - living room
+台 - for certain machinery, apparatus, etc.
+厨房 - kitchen
+平常 - usual days; usual; ordinary
+基本上 - in general; basically
+整个 - whole
+毛巾 - towel
+建议 - suggestion; suggest
+查看 - check
+信息 - information; message
+查找 - look for
+接着 - after that; go on (with)
+同时 - in addition; same time
+位置 - location
+价格 - price
+理想 - ideal
+由于 - because; because of
+工资 - wage; salary; pay
+感 - sense
+
+LESSON 3
+十字路口 - crossroads
+直接 - direct
+转 - turn; change
+正好 - coincidentally; just in time; just right/enough
+熟悉 - be familiar with; know well
+正 - straight
+目的地 - destination
+下载 - download
+进行 - carry out; conduct
+支付 - pay
+软件 - software
+扫码 - scan the QR code
+结账 - settle one's bill
+购物 - do/go shopping
+订 - order; book
+快递 - express
+现金 - cash
+网购 - shop online
+寄 - send
+等 - part. etc.
+货 - goods
+甚至 - even
+改变 - change
+手指 - finger
+乱 - indiscriminately; messy
+管 - control
+提供 - provide
+身份证 - ID card
+个人 - individual (person)
+技术 - technology
+能否 - whether
+保护 - protect
+于是 - so
+密码 - password
+随便 - careless; do as one pleases; no matter
+法律 - law
+手段 - means
+保证 - ensure; assurance
+网络 - network
+
+LESSON 4
+啊 - ah; oh
+停 - stop; park (a car)
+交 - hand over
+费 - charges; fee; cost; expend
+信号 - signal
+感谢 - thank
+联系 - contact
+方式 - way
+客气 - be polite/courteous; polite/courteous
+剩 - be left over
+提 - carry (in one's hand with the arm hanging down)
+重 - heavy; weight
+算 - count/regard as
+袋子 - bag
+再说 - what's more
+之间 - between
+互相 - mutually
+辛苦 - go to great trouble; hard
+出行 - set out on a journey
+距离 - distance; be away from
+往往 - often
+既 - as well as
+速度 - speed
+充电 - charge (a battery)
+流行 - be popular
+省 - save
+电动车 - e-bike
+力气 - physical strength
+乘客 - passenger
+购买 - buy
+食物 - food
+免费 - be free of charge
+早餐 - breakfast
+来得及 - have enough time to do sth
+鲜花 - fresh flower
+顺便 - in passing; at one's own convenience
+心情 - mood
+更加 - more
+愉快 - joyful
+
+LESSON 5
+至少 - at (the) least
+中餐 - Chinese meal
+专门 - on purpose; special; specialized
+煮 - boil
+油 - oil
+道 - for courses in a meal, stages in a procedure, etc.
+熟 - cooked; familiar
+倒 - pour
+辣椒 - chili pepper
+辣 - spicy
+敢 - dare
+肚子 - abdomen; belly
+相同 - same
+顺序 - order
+够 - really; be enough
+不够 - not enough; be insufficient
+达到 - reach; achieve
+聚 - get together
+午餐 - lunch
+咸 - salty
+凉 - cold; cool
+酸 - sour; tingling
+汤 - broth; soup
+各 - each
+付 - pay
+聚餐 - dine together
+随意 - as one pleases
+正式 - formal
+普通 - ordinary
+重视 - attach importance to
+座位 - seat
+安排 - arrange
+按照 - according to
+年龄 - age
+面对 - face
+主人 - host
+尊重 - respect
+
+LESSON 6
+咳嗽 - cough
+咳 - cough
+厉害 - severe
+严重 - serious
+赶快 - without delay; immediately
+陪 - accompany
+翻译 - interpret; translate; interpreter; translator
+护士 - nurse
+表 - form; table
+性别 - sex; gender
+国籍 - nationality
+家庭 - family
+地址 - address
+挂号 - register (especially at a hospital)
+排队 - line up
+大厅 - (main) hall
+偶尔 - occasionally; occasional
+身 - body; (of clothes) suit
+性 - used to designate a specified quality, property, scope, etc.
+体温 - (body) temperature
+降 - fall; drop
+低 - low; below
+光 - only; merely
+难受 - uncomfortable
+打针 - give/get an injection
+有效 - be effective
+按时 - on time
+醒 - wake up
+感觉 - feel; feeling
+通 - know; understand
+部 - department or division
+收费 - charge
+过程 - process
+好 - so as to
+治疗 - treat; cure
+步 - step
+情况 - condition; situation
+
+LESSON 7
+打扰 - bother; disturb
+市场 - market
+调查 - survey; inquire into
+计划 - plan
+内容 - content
+改 - change; alter; correct
+细心 - careful; attentive
+客户 - customer
+真正 - real; really
+想法 - opinion; idea
+任务 - task
+及时 - promptly; in time; timely
+出差 - go on a business trip
+经验 - experience
+采访 - interview
+产品 - product
+看法 - opinion
+提前 - do sth in advance
+便于 - be convenient for
+既然 - now that; since
+谈 - discuss; talk
+笔 - for sums of money, financial accounts, etc.
+生意 - business; trade
+困难 - difficulty; difficult
+实际 - actual; reality
+效果 - result; effect
+点 - point
+优点 - advantage
+缺点 - disadvantage; weakness
+一下 - all once
+份 - used to indicate portions, copies, sets, etc.
+积累 - accumulate
+管理 - manage
+基础 - foundation
+使 - cause; make
+能力 - ability
+进入 - enter
+今后 - in future
+社会 - society
+
+LESSON 8
+紧张 - tense; nervous; in short supply
+放松 - relax
+呀 - wow
+不管 - no matter
+郊区 - suburbs
+游玩 - go sightseeing
+主意 - idea
+外出 - go out
+戴 - wear; put on
+帽子 - cap; hat
+项目 - project
+加班 - work overtime
+熬夜 - stay up late
+否则 - otherwise
+失去 - lose
+值得 - be worth
+暂停 - suspend
+之后 - after
+风景 - scenery
+效率 - efficiency
+与 - with; and
+下降 - decline; fall
+相比 - compare
+因此 - therefore
+提醒 - remind
+大nature - nature
+美丽 - beautiful
+景色 - scenery
+首都 - capital (of a country)
+市区 - urban district
+乘坐 - take; ride
+眼前 - before one's eyes
+美景 - beautiful scenery
+参观 - visit
+景点 - scenic site
+实际上 - actually
+
+LESSON 9
+刚好 - just right; exactly
+尽管 - even though; although
+此 - this; these
+从来 - always; all along
+
+LESSON 10
+怎么着 - how
+有的是 - more than enough; plenty of
+而 - whereas; while; yet
+再次 - once again; again
+`,
+  "YCT1": `
+Lesson 1
+你 - you (singular)
+好 - good
+老师 - teacher
+再见 - goodbye
+
+Lesson 2
+我 - me
+叫 - to be called
+高兴 - glad
+她 - she, her
+吗 - (a question particle)
+不 - no, not
+什么 - what
+认识 - to know
+很 - very
+
+Lesson 3
+他 - he, him
+是 - am, is, are
+谁 - who, whom
+哪 - which
+国 - country
+人 - person
+中国人 - Chinese people
+
+Lesson 4
+有 - to have
+几 - how many (within 10)
+口 - (a measure word for family members)
+家 - family
+和 - and
+没有 - don't have
+个 - (a measure word for general use)
+哥哥 - big brother
+姐姐 - big sister
+妹妹 - little sister
+
+Lesson 5
+岁 - year(s) old
+多大 - how old
+也 - also, too
+
+Lesson 6
+头发 - hair
+鼻子 - nose
+眼睛 - eye
+的 - (indicating a possessive relationship)
+小 - small
+手 - hand
+耳朵 - ear
+大 - big
+长 - long
+个子 - height (for people)
+真 - really
+高 - tall
+
+Lesson 7
+这 - this
+那 - that
+看 - to look
+这儿 - here
+多 - many, much
+那儿 - there
+猫 - cat
+狗 - dog
+鱼 - fish
+鸟 - bird
+
+Lesson 8
+学校 - school
+在 - in, at
+谢谢 - to thank, thanks
+去 - to go
+你们 - you (plural)
+我们 - we
+哪儿 - where
+商店 - store
+
+Lesson 9
+生日 - birthday
+星期一 - Monday
+星期二 - Tuesday
+星期三 - Wednesday
+星期四 - Thursday
+星期五 - Friday
+星期六 - Saturday
+星期天 - Sunday
+月 - month
+号 - date
+今天 - today
+星期 - week
+明天 - tomorrow
+喜欢 - to like
+
+Lesson 10
+现在 - now
+点 - o'clock
+分 - minute
+见 - to meet
+早上 - morning
+太早了 - It's too early!
+
+Lesson 11
+米饭 - rice
+面条 - noodle
+苹果 - apple
+牛奶 - milk
+水 - water
+吃 - to eat
+喝 - to drink
+爱 - to love
+蛋糕 - cake
+`,
+  "YCT2": `
+Lesson 1
+可以 - may
+坐 - sit
+请 - please
+不客气 - You're welcome.
+不要 - don't
+说话 - to talk, to speak
+对不起 - I'm sorry.
+没关系 - Never mind.
+
+Lesson 2
+起床 - get up
+睡觉 - sleep, go to bed
+到 - up to, until
+呢 - (a modal particle)
+要 - to want, would like
+早上 - morning
+晚上 - night, evening
+
+Lesson 3
+床 - bed
+桌子 - table
+铅笔 - pencil
+房间 - room
+里 - in, inside
+上 - on
+电视 - television
+椅子 - chair
+书包 - schoolbag
+
+Lesson 4
+红色 - red
+黄色 - yellow
+只 - (a measure word for some animals and some body parts)
+名字 - name
+漂亮 - beautiful
+颜色 - color
+两 - two
+本 - (a measure word for books)
+绿色 - green
+
+Lesson 5
+包子 - baozi
+医生 - doctor
+厨师 - chef, cook
+会 - can
+做 - to do
+真 - really, real
+好吃 - delicious
+
+Lesson 6
+钱 - money
+茶 - tea
+买 - to buy
+多少 - how much, how many
+块 - kuai (a unit for RMB)
+杯 - cup (a measure word for drinks)
+太贵了! - It's too expensive!
+
+Lesson 7
+冷 - cold
+热 - hot
+北京 - Beijing
+天气 - weather
+怎么样 - how
+比 - than
+昨天 - yesterday
+觉得 - to feel, to think
+好喝 - good to drink, drinkable
+
+Lesson 8
+弟弟 - little brother
+妹妹 - litter sister
+朋友 - friend
+同学 - classmate
+也 - also, too
+学生 - student
+
+Lesson 9
+香蕉 - banana
+熊猫 - panda
+水果 - fruit
+了 - (perfective particle)
+画 - to draw, to paint; picture, drawing
+没 - didn't (do), haven't (done)
+
+Lesson 10
+脚 - foot
+医院 - hospital
+怎么了 - what's wrong with...
+疼 - painful
+
+Lesson 11
+零 - zero 
+玩 - play 
+分钟 - minute 
+来 - come 
+年 - year 
+学习 - study 
+汉语 - Chinese language 
+用 - use 
+打电话 - make a phone call 
+以前 - before
+`,
+  "YCT3": `
+LESSON 1
+年级 - grade
+课 - class, lesson
+都 - both, all
+班 - class
+张 - Zhang (a Chinese surname)
+还 - also, too
+新 - new
+男 - male
+女 - female
+
+LESSON 2
+游泳 - swim
+太 - too, extremely
+每 - every, each
+一起 - together
+运动 - sports
+打篮球 - play basketball
+欢迎 - to welcome
+踢足球 - play soccer / play football
+
+LESSON 3
+太阳 - sun
+月亮 - moon
+跑步 - run, jog
+奶奶 - grandmother
+唱歌 - sing
+跳舞 - dance
+让 - to let, to allow or to make (somebody do something)
+
+LESSON 4
+喂 - Hello! (on the telephone)
+您 - you (polite)
+找 - to look for
+回 - to return, to go back
+问题 - question
+问 - to ask
+
+LESSON 5
+饿 - hungry
+想 - to think
+最 - best
+给 - to give
+再 - again
+饱 - full (after eating)
+面条儿 - noodles
+饺子 - Chinese dumplings
+
+LESSON 6
+帮(助) - to help
+穿 - to wear, to put on
+能 - can
+自己 - oneself
+衣服 - clothes
+鞋 - shoes
+
+LESSON 7
+生日 - birthday
+送 - to give (a gift)
+吧 - (used at the end of a sentence to indicate a mild suggestion)
+但是 - but, however
+快乐 - happy
+礼物 - gift, present
+花 - flower
+蛋糕 - cake
+
+LESSON 8
+下雨 - to rain
+下雪 - to snow
+听 - to listen
+外面 - outside
+出 - to go/come out
+别 - don't
+作业 - homework
+
+LESSON 9
+哭 - to cry
+笑 - to smile
+东西 - thing
+丢 - to lose
+到 - (used after verb to indicate result)
+
+LESSON 10
+老虎 - tiger
+第一 - the first
+胖 - fat
+瘦 - thin
+得 - (a structural particle)
+快 - fast
+知道 - to know
+
+LESSON 11
+水果 - fruit
+糖 - candy
+把 - (indicating a thing is disposed of)
+西瓜 - watermelon
+鸡蛋 - egg
+`,
+  "YCT4": `
+Lesson 1
+手机 - mobile phone
+电脑 - computer
+零 - zero
+上网 - go online
+百 - hundred
+千 - thousand
+少 - less
+
+Lesson 2
+时间 - time
+半 - half
+难 - difficult
+小时 - hour
+题 - question
+懂 - to understand
+读 - to read
+
+Lesson 3
+中午 - noon
+卖 - to sell
+开 - open / drive
+关 - close
+完 - over, finished
+就 - as early as, just
+门 - door
+杯子 - cup, glass, mug
+
+Lesson 4
+身体 - body, health
+舒服 - comfortable
+生病 - sick
+感冒 - have a cold
+休息 - have a rest
+疼 - hurt, ache
+药 - medicine
+一点儿 - a little, a bit
+
+Lesson 5
+鱼 - fish
+菜 - a dish of cooked food
+进 - come in, go in
+果汁 - juice
+洗澡 - take a shower or bath
+它 - it
+
+Lesson 6
+教室 - classroom
+走 - go
+过 - used after a verb to indicate past experience
+前 - front
+左 - left
+右 - right
+后 - behind
+
+Lesson 7
+动物园 - zoo
+公共汽车 - bus
+路 - road
+远 - far
+近 - near
+旁边 - beside
+条 - a measure word
+车站 - bus stop
+开 - drive
+对 - right
+
+Lesson 8
+雨伞 - umbrella
+拿 - take
+蓝 - blue
+慢 - slow
+迟到 - late
+坏 - bad, broken
+
+Lesson 9
+飞机 - plane
+时候 - time
+去年 - last year
+次 - time
+累 - tired
+
+Lesson 10
+电影 - film, movie
+为什么 - why
+忙 - busy
+事情 - thing
+意思 - meaning
+because……所以…… - because... (so)...
+
+Lesson 11
+裙子 - dress, skirt
+裤子 - trousers
+白 - white
+黑 - black
+长 - grow
+出生 - birth
+件 - a measure word
+可爱 - cute, lovely
+`,
+  "YCT5": `
+Lesson 1
+功夫 - kung fu
+对……感兴趣 - be interested in
+非常 - very much
+飞 - fly
+当然 - of course
+特别 - especially; special
+厉害 - awesome, fierce
+帮助 - help; help
+别人 - other people
+阿宝 - Po (Kung Fu Panda's name)
+一样 - the same...(as)
+
+Lesson 2
+大象 - elephant
+兔子 - rabbit, bunny
+蝴蝶 - butterfly
+虫子 - bug, insect
+尾巴 - tail
+矮 - short (in height)
+短 - short (in length)
+胖 - fat
+更 - more
+讨厌 - hate, dislike; annoying
+告诉 - tell
+将来 - future
+
+Lesson 3
+楼 - building
+层 - floor, storey
+还是 - or (used in an alternative question)
+等 - wait
+啊 - ah (an interjection word for surprise)
+放 - put
+空调 - air-conditioner
+电梯 - elevator
+窗户 - window
+沙发 - sofa
+洗手间 - bathroom
+
+Lesson 4
+邻居 - neighbor
+习惯 - habit; get used to
+一会儿 - a little while
+以前 - before
+周末 - weekend
+带 - take, bring
+奇怪 - strange, weird
+咖啡 - coffee
+弹钢琴 - play the piano
+散步 - take a walk
+公园 - park
+爬山 - climb a mountain
+
+Lesson 5
+儿子 - son
+女儿 - daughter
+叔叔 - uncle
+阿姨 - aunt
+孙子 - grandson
+帅 - handsome
+年轻 - young
+孩子 - child
+照相 - take a photo
+照片 - photo
+多么 - so
+张 - piece (a measure word for flat things such as paper)
+
+Lesson 6
+站 - stand
+着 - (indicating that the action is in progress)
+戴 - wear (for accessories, such as glasses)
+眼镜 - glasses
+错 - wrong
+大家 - everyone
+看见 - see
+项圈 - necklet
+联系 - contact; connection
+号码 - number
+
+Lesson 7
+选 - choose
+经常 - often
+锻炼 - work out, exercise
+不但……而且…… - not only...but also...
+健康 - healthy; health
+心情 - mood
+流汗 - sweat
+乒乓球 - table tennis
+网球 - tennis
+排球 - volleyball
+体育馆 - gym
+
+Lesson 8
+季节 - season
+一共 - altogether
+暖和 - warm
+凉快 - cool (of weather)
+到处 - everywhere
+堆雪人 - make a snowman
+晴 - sunny
+阴 - overcast
+刮风 - (of the wind) blow
+春天 - spring
+夏天 - summer
+秋天 - fall, autumn
+冬天 - winter
+
+Lesson 9
+记得 - remember
+已经 - already
+办法 - way (of doing something)
+尝 - taste
+又……又…… - both...and...
+便宜 - cheap
+巧克力 - chocolate
+冰激凌 - ice cream
+饼干 - cookie
+饮料 - beverage
+玩具 - toy
+手表 - watch
+超市 - supermarket
+
+Lesson 10
+成绩 - grade, score
+考试 - take a test, test
+复习 - review
+准备 - prepare, plan; preparation
+努力 - (to do something) hard
+一定 - definitely
+只要……就…… - as long as... then...
+认真 - (to take something) seriously
+练习 - exercise; to practice
+越来越 - more and more
+相信 - believe
+聊天儿 - chat
+
+Lesson 11
+烤鸭 - roast duck
+服务员 - waiter, waitress
+盘 - plate
+羊肉 - lamb
+汤 - soup
+其他 - other
+用 - use
+离开 - leave
+双 - pair (a measure word for chopsticks)
+碗 - bowl
+筷子 - chopsticks
+叉子 - fork
+
+Lesson 12
+地铁 - subway
+火车 - train
+上海 - Shanghai
+可能 - probably
+担心 - worry
+如果……那么…… - if... then...
+工作 - to work; work
+出差 - go on a business trip
+安全 - safe
+准时 - punctual
+或者 - or (used in a statement)
+方便 - convenient
+
+Lesson 13
+发烧 - have a fever
+严重 - serious
+戴 - wear (for accessories, such as gloves/hats)
+帽子 - hat, cap
+刮风 - blow (wind)
+检查 - check, examine
+牙齿 - tooth
+补 - fill, mend
+疼 - pain, ache
+医院 - hospital
+护士 - nurse
+医生 - doctor
+
+Lesson 14
+打算 - plan, intend
+旅游 - travel
+护照 - passport
+签证 - visa
+行李 - luggage
+准备 - prepare
+机场 - airport
+接 - pick up (someone)
+飞机 - airplane
+票 - ticket
+航班 - flight
+导游 - tour guide
+`,
+  "YCT6": `
+Lesson 1
+又……又…… - both...and...
+勇敢 - brave
+聪明 - clever
+另外 - besides
+属 - be born in the year of
+收到 - receive
+祝贺 - congratulate
+初中 - junior high school
+挂 - hang
+节日 - festival
+猴子 - monkey
+毕业 - graduate
+信封 - envelope
+春节 - Spring Festival
+灯笼 - lantern
+
+Lesson 2
+容易 - easy
+刚才 - just now
+极了 - really, very, extremely
+讲 - explain, tell
+明白 - understand; clear
+骑 - ride
+希望 - hope; to hope
+参加 - take part in
+万 - ten thousand
+加 - add (plus)
+减 - subtract (minus)
+自行车 - bike
+比赛 - competition; to compete
+数学 - math
+
+Lesson 3
+安静 - quiet
+醒 - wake up
+刻 - quarter
+响 - ring
+开会 - have a meeting
+着急 - worry
+来得及 - have enough time (to do sth.)
+上班 - go to work
+以为 - think, assume
+正(在) - in the process of (doing sth.)
+一边……一边…… - doing sth. and sth. else (at the same time)
+起来 - get up
+闹钟 - alarm clock
+校园 - campus
+树 - tree
+声音 - sound
+
+Lesson 4
+面(粉) - flour
+接 - pick (someone) up
+够 - enough
+打扫 - clean, sweep
+一下 - a moment
+干净 - clean
+修剪 - mow (the lawn)
+照顾 - take care of
+睡着 - fall asleep
+互相 - each other
+生活 - life; to live
+斤 - half kilogram (500g)
+葡萄 - grape
+草地 - lawn, meadow
+
+Lesson 5
+渴 - thirsty
+错 - wrong
+表扬 - praise
+句子 - sentence
+有意思 - interesting
+从 - from
+马虎 - careless
+才 - just
+想起来 - remember
+忘(记) - forget
+地 - (a grammar word used to indicate an adverb)
+钥匙 - key
+生气 - angry
+停 - stop
+
+Lesson 6
+警察 - policeman, policewoman
+售票员 - ticket-seller
+记者 - reporter, journalist
+演员 - actor, actress
+表演 - to perform; performance
+节目 - show, programme
+受欢迎 - be well liked, popular
+猜 - guess
+电灯 - electric lamp
+当 - become
+重要 - important
+新闻 - news
+应该 - should, ought to
+一……就…… - as soon as; whenever
+看见 - see
+
+Lesson 7
+还 - return
+借 - borrow; lend
+页 - page
+俩 - two
+像 - be like
+虽然……但是…… - although...(but)...
+为了 - in order to
+牌子 - sign, board
+词典 - dictionary
+脸 - face
+圆 - round
+先生 - Mr., sir
+双胞胎 - twins
+儿童车 - baby stroller
+
+Lesson 8
+被 - (an auxiliary word for passive voice)
+又 - again
+鱼缸 - fishbowl
+种 - kind, type (a measure word)
+最近 - recently
+游戏 - game
+不怎么样 - not that good
+批评 - scold
+决定 - decide
+开始 - begin
+破 - broken
+难过 - sad
+
+Lesson 9
+搬家 - move house
+附近 - near
+地址 - address
+电子邮件 - email
+迷路 - get lost
+出发 - set out
+见面 - meet
+行 - OK
+故事 - story
+力气 - strength
+老 - old
+图书馆 - library
+报纸 - newspaper
+杂志 - magazine
+超人 - superman
+
+Lesson 10
+离 - from
+大概 - about
+公里 - kilometer
+藏起来 - hide
+月饼 - moon cake
+大海 - sea
+草原 - grassland
+云 - cloud
+骑马 - ride a horse
+星星 - stars
+三亚 - Sanya (a city in Southern China)
+
+Lesson 11
+合适 - fit, appropriate
+辆 - (a measure word for bicycles, cars, etc.)
+为 - for
+紧张 - nervous
+敢 - dare
+害怕 - fear, be afraid of
+元 - yuan (the currency of China)
+贵 - expensive
+花 - spend, cost
+帽子 - cap, hat
+换 - swap; change
+旧 - old, worn
+试 - try
+
+Lesson 12
+注意 - pay attention; be careful
+记住 - remember; memorize
+身 - (a measure word for clothes)
+比如 - such as, for example
+礼貌 - polite
+必须 - must
+小心 - be careful
+地方 - place
+危险 - dangerous
+脱 - take (sth.) off
+排队 - line up
+中间 - middle
+腿 - leg
+
+Lesson 13
+辣 - spicy
+极 - extreme
+甜 - sweet
+咸 - salty
+酸 - sour
+苦 - bitter
+味道 - taste, flavor
+盘子 - plate
+筷子 - chopsticks
+服务员 - waiter, waitress
+欢迎 - welcome
+光临 - presence (of a guest)
+菜单 - menu
+点菜 - order dishes
+
+Lesson 14
+动物园 - zoo
+熊猫 - panda
+睡觉 - sleep
+醒 - wake up
+一直 - always, all along
+树 - tree
+竹子 - bamboo
+动物 - animal
+世界 - world
+危险 - dangerous
+保护 - protect
+野生 - wild
+森林 - forest
+了解 - understand, know about
+`,
+  "estcV1_1A": `
+Lesson 1
+一 - one
+二 - two
+三 - three
+四 - four
+五 - five
+
+Lesson 2
+六 - six
+七 - seven
+八 - eight
+九 - nine
+十 - ten
+
+Lesson 3
+十一 - eleven
+十二 - twelve
+十三 - thirteen
+十四 - fourteen
+十五 - fifteen
+十六 - sixteen
+十七 - seventeen
+十八 - eighteen
+十九 - nineteen
+二十 - twenty
+
+Lesson 4
+你 - you
+您 - you (respectfully)
+好 - good
+老师 - teacher
+再见 - good-bye
+王 - a surname; king
+
+Lesson 5
+谢谢你 - thank you
+不客气 - you’re welcome
+对不起 - I’m sorry
+没关系 - never mind
+
+Lesson 6
+我 - I; me
+叫 - call
+什么 - what
+名字 - name
+
+Lesson 7
+岁 - age
+几 - how many
+上一年级 - attend Grade One
+都 - both; all
+医生 - doctor
+加 - add
+等于 - equal
+`,
+  "estcV1_1B": `
+Lesson 1
+爸爸 - dad
+妈妈 - mum
+爱 - love; like
+
+Lesson 2
+哥哥 - elder brother
+姐姐 - elder sister
+弟弟 - younger brother
+妹妹 - younger sister
+有 - have
+
+Lesson 3
+我的 - my
+眼睛 - eye
+鼻子 - nose
+嘴巴 - mouth
+耳朵 - ear
+
+Lesson 4
+头 - head
+头发 - hair
+手 - hand
+脚 - foot
+和 - and
+
+Lesson 5
+喜欢 - like
+猫 - cat
+狗 - dog
+鱼 - fish
+金鱼 - goldfish
+的 - 's; of
+小 - small; little
+
+Lesson 6
+红色 - red
+黄色 - yellow
+蓝色 - blue
+绿色 - green
+
+Lesson 7
+吃 - eat
+苹果 - apple
+香蕉 - banana
+草莓 - strawberry
+葡萄 - grape
+`,
+  "estcV1_2A": `
+Lesson 1
+二十六 - twenty-six
+三十八 - thirty-eight
+四十 - forty
+加 - plus
+等于 - equal to
+
+Lesson 2
+没有 - there isn't
+和 - and
+个 - one
+两个 - two
+
+Lesson 3
+朋友 - friend
+他 - he
+她 - she
+是 - be
+小学生 - primary school student
+找 - look for
+找到 - have found
+
+Lesson 4
+娃娃 - doll
+玩具飞机 - toy plane
+玩具火车 - toy train
+玩具熊 - teddy bear
+
+Lesson 5
+看书 - read books
+画画 - draw; paint
+写字 - write characters
+玩游戏 - play games
+每天 - everyday
+减 - minus
+对了 - right
+不对 - wrong
+
+Lesson 6
+会 - can
+穿 - put on; wear
+衣服 - clothes
+鞋子 - shoes
+梳头 - comb one's hair
+刷牙 - brush one's teeth
+
+Lesson 7
+不 - no
+紫色 - purple
+橙色 - orange
+粉红色 - pink
+黑色 - black
+白色 - white
+`,
+  "estcV1_2B": `
+Lesson 1
+今天 - today
+星期一 - Monday
+星期二 - Tuesday
+星期三 - Wednesday
+星期四 - Thursday
+星期五 - Friday
+星期六 - Saturday
+星期天 - Sunday
+星期 - week
+天 - day
+
+Lesson 2
+几点了 - what time is it?
+一点 - 1 o'clock
+两点 - 2 o'clock
+三点 - 3 o'clock
+四点 - 4 o'clock
+五点 - 5 o'clock
+六点 - 6 o'clock
+七点 - 7 o'clock
+八点 - 8 o'clock
+九点 - 9 o'clock
+十点 - 10 o'clock
+十一点 - 11 o'clock
+十二点 - 12 o'clock
+
+Lesson 3
+铅笔 - pencil
+橡皮 - eraser
+彩色笔 - colour pencil
+尺子 - ruler
+剪刀 - scissors
+支 - a measure word
+把 - a measure word
+块 - a measure word
+
+Lesson 4
+这 - this
+教室 - classroom
+桌子 - desk; table
+椅子 - chair
+书 - book
+张 - a measure word
+本 - a measure word
+间 - a measure word
+个 - a measure word
+
+Lesson 5
+动物园 - zoo
+里 - inside
+老虎 - tiger
+大象 - elephant
+熊猫 - panda
+只 - a measure word
+条 - a measure word
+头 - a measure word
+加起来 - add up
+多少 - how many
+
+Lesson 6
+兔子 - rabbit
+大 - big
+小 - small
+多 - many
+少 - few
+根 - a measure word
+
+Lesson 7
+糖果 - candy
+蛋糕 - cake
+冰淇淋 - ice cream
+巧克力 - chocolate
+`,
+  "estcV1_3A": `
+Lesson 1
+四十一 - forty-one
+五十三 - fifty-three
+五十 - fifty
+六十 - sixty
+七十 - seventy
+八十 - eighty
+九十 - ninety
+一百 - one hundred
+口 - mouth
+目 - eye
+
+Lesson 2
+号 - date
+一月 - January
+二月 - February
+三月 - March
+四月 - April
+五月 - May
+六月 - June
+七月 - July
+八月 - August
+九月 - September
+十月 - October
+十一月 - November
+十二月 - December
+今天 - today
+日 - sun; day/date
+月 - moon; month
+
+Lesson 3
+祝 - wish
+生日 - birthday
+快乐 - happy
+礼物 - gift; present
+生日会 - birthday party
+人 - person
+天 - sky; day
+
+Lesson 4
+家 - family
+五口人 - five members of a family
+爷爷 - father's father
+奶奶 - father's mother
+外公 - mother's father
+外婆 - mother's mother
+谁 - who
+山 - mountain
+木 - wood
+
+Lesson 5
+中国人 - Chinese (people)
+德国人 - German (people)
+美国人 - American (people)
+法国人 - French (people)
+英国人 - British (people)
+哪国人 - what nationality
+澳大利亚 - Australia
+加拿大 - Canada
+土 - soil
+田 - field
+
+Lesson 6
+可以 - can; may
+不行 - cannot; may not
+吗 - question particle
+去 - go
+厕所 - toilet
+喝水 - drink water
+吃饭 - eat a meal
+大 - big
+小 - small
+
+Lesson 7
+校服 - school uniform
+衬衫 - shirt
+裙子 - dress; skirt
+裤子 - trousers
+皮鞋 - leather shoes
+多 - many
+少 - few
+`,
+  "estcV1_3B": `
+Lesson 1
+书包 - schoolbag
+课本 - textbook
+练习册 - workbook
+文具盒 - pencil case
+上 - up; above
+下 - down; below
+
+Lesson 2
+电脑 - computer
+电视机 - television set
+书架 - bookshelf
+很多 - many, much
+上 - on top of
+水 - water
+火 - fire
+
+Lesson 3
+在 - in; on; at
+前边 - in front
+后边 - behind
+左边 - left
+右边 - right
+拍 - clap
+跳 - jump
+牛 - ox
+羊 - sheep
+
+Lesson 4
+我们 - we; us
+唱歌 - sing
+跳舞 - dance
+游泳 - swim
+滑冰 - skate
+滑雪 - ski
+门 - door
+头 - head
+
+Lesson 5
+面包 - bread
+鸡蛋 - egg
+饺子 - dumpling
+包子 - steamed stuffed bun
+牛奶 - milk
+果汁 - juice
+心 - heart
+马 - horse
+
+Lesson 6
+土豆 - potato
+黄瓜 - cucumber
+西兰花 - broccoli
+西红柿 - tomato
+胡萝卜 - carrot
+也 - also; too
+米 - rice
+石 - stone
+
+Lesson 7
+天上 - in the sky
+地上 - on the ground
+太阳 - sun
+星星 - star
+月亮 - moon
+树 - tree
+花 - flower
+草 - grass
+力 - strength; power
+手 - hand
+`,
+  "estcV1_4A": `
+Lesson 1
+住 - live
+哪儿 - where
+他们 - they; them
+北京 - Beijing
+电话号码 - telephone number
+多少 - how many; how much
+
+Lesson 2
+说 - speak; say
+汉语 - Chinese (language)
+英语 - English (language)
+德语 - German (language)
+法语 - French (language)
+
+Lesson 3
+现在 - now
+分 - minute
+一刻 - a quarter (of an hour)
+三刻 - three quarters (of an hour)
+半 - half
+零 - zero
+
+Lesson 4
+起床 - get up
+早饭 - breakfast
+午饭 - lunch
+上学 - go to school
+放学 - school is over
+晚饭 - dinner
+睡觉 - sleep
+
+Lesson 5
+炒面 - fried noodles
+薯条 - French fries
+热狗 - hot dog
+三明治 - sandwich
+比萨饼 - pizza
+
+Lesson 6
+坐 - sit; travel by
+校车 - school bus
+走路 - walk
+出租车 - taxi
+公共汽车 - bus
+
+Lesson 7
+饿 - hungry
+渴 - thirsty
+饱 - full
+要 - want
+可乐 - Coke
+炒饭 - fried rice
+好吃 - delicious
+`,
+  "estcV1_4B": `
+Lesson 1
+下雨 - rain
+下雪 - snow
+晴天 - sunny day
+很冷 - very cold
+很热 - very hot
+刮大风 - very windy
+
+Lesson 2
+T恤 - T-shirt
+短裤 - shorts
+毛衣 - sweater
+长裤 - pants
+大衣 - overcoat
+帽子 - hat
+戴 - wear (accessories)
+
+Lesson 3
+房间 - room
+床 - bed
+衣柜 - wardrobe
+书桌 - desk
+钢琴 - piano
+自行车 - bicycle
+
+Lesson 4
+看电视 - watch TV
+弹钢琴 - play the piano
+玩电脑游戏 - play computer games
+看电影 - watch movies
+看动画片儿 - watch cartoons
+
+Lesson 5
+学校 - school
+礼堂 - assembly hall
+图书馆 - library
+操场 - playground
+游泳池 - swimming pool
+
+Lesson 6
+学 - study
+上课 - attend a class
+数学 - maths
+音乐 - music
+美术 - art
+体育 - P.E.
+
+Lesson 7
+公园 - park
+海边 - seaside
+跑步 - run; jog
+踢球 - play football
+骑自行车 - ride a bicycle
+玩沙子 - play with sand
+`,
+  "ESTC": `
+Lesson 1
+你好 - hello
+早安 - good morning
+晚安 - good evening
+
+Lesson 2
+开心 - happy
+高兴 - glad
+谢谢 - thank you
+`,
+  "EasySteps": `
+Lesson 1
+一 - one
+二 - two
+三 - three
+四 - four
+五 - five
+`
+};
+
+const easyStepsDict = {};
+let allSeriesStages = {};
+let currentSeriesKey = "HSK1";
+let curriculumStages = [];
+const defaultBuiltinKeys = ["HSK1", "HSK2", "HSK3", "HSK4", "YCT1", "YCT2", "YCT3", "YCT4", "YCT5", "YCT6", "estcV1_1A", "estcV1_1B", "estcV1_2A", "estcV1_2B", "estcV1_3A", "estcV1_3B", "estcV1_4A", "estcV1_4B", "ESTC", "EasySteps"];
+
+function parseTextToStages(text, seriesName) {
+  const lines = text.split(/\r?\n/);
+  let currentLessonName = "Lesson 1";
+  let stagesMap = {};
+  let orderKeys = [];
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+
+    if (/^(lesson|les|l\.)\s*\d+/i.test(line) || /^lesson\s+[a-z0-9]+/i.test(line) || /^LESSON\s+\d+/i.test(line)) {
+      currentLessonName = line;
+      continue;
+    }
+
+    let parsed = parseWordDocLine(line);
+    if (parsed) {
+      easyStepsDict[parsed.zh] = { zh: parsed.zh, py: parsed.py, en: parsed.en };
+      let stageName = `${currentLessonName}`;
+      if (!stagesMap[stageName]) {
+        stagesMap[stageName] = [];
+        orderKeys.push(stageName);
+      }
+      if (!stagesMap[stageName].includes(parsed.zh)) {
+        stagesMap[stageName].push(parsed.zh);
+      }
+    }
+  }
+
+  let stages = [];
+  orderKeys.forEach((key, idx) => {
+    stages.push({
+      key: `${seriesName}_stage_${idx + 1}`,
+      name: key,
+      words: stagesMap[key]
+    });
+  });
+
+  if (stages.length === 0) {
+    stages.push({ key: `${seriesName}_default`, name: "Lesson 1", words: ["你好", "谢谢", "老师", "学生"] });
+  }
+
+  return stages;
+}
+
+function parseWordDocLine(line) {
+  let dashIdx = line.indexOf('-');
+  if (dashIdx === -1) dashIdx = line.indexOf('–');
+  let parenIdx = line.indexOf('(');
+  if (dashIdx !== -1 && parenIdx !== -1 && parenIdx < dashIdx) {
+    let zh = line.substring(0, parenIdx).trim();
+    let py = line.substring(parenIdx + 1, line.indexOf(')', parenIdx)).trim();
+    let en = line.substring(dashIdx + 1).trim();
+    if (zh && en) return { zh: zh, py: py || zh, en: en };
+  }
+
+  if (line.includes("：") || (line.includes(":") && !line.includes("http"))) {
+    let parts = line.split(/[：:]/);
+    if (parts.length >= 2) {
+      let rawZh = parts[0].trim();
+      let en = parts.slice(1).join(":").trim();
+      let pIdx = rawZh.indexOf('(');
+      let zh = rawZh, py = rawZh;
+      if (pIdx !== -1) {
+        zh = rawZh.substring(0, pIdx).trim();
+        let endP = rawZh.indexOf(')', pIdx);
+        py = (endP !== -1) ? rawZh.substring(pIdx + 1, endP).trim() : zh;
+      }
+      if (zh && en) return { zh: zh, py: py, en: en };
+    }
+  }
+
+  if (dashIdx !== -1) {
+    let zh = line.substring(0, dashIdx).trim();
+    let en = line.substring(dashIdx + 1).trim();
+    if (zh && en) return { zh: zh, py: zh, en: en };
+  }
+
+  return null;
+}
+
+function initAllDatabases() {
+  try {
+    const savedCustomData = localStorage.getItem('super_mario_custom_vocabularies');
+    if (savedCustomData) {
+      const parsedCustom = JSON.parse(savedCustomData);
+      for (let k in parsedCustom) {
+        multiSeriesRawData[k] = parsedCustom[k];
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load local custom vocabularies:", e);
+  }
+
+  for (let key in multiSeriesRawData) {
+    allSeriesStages[key] = parseTextToStages(multiSeriesRawData[key], key);
+  }
+}
+
+initAllDatabases();
+curriculumStages = allSeriesStages[currentSeriesKey];
+
+function getPinyinOnly(word) {
+  if (easyStepsDict[word] && easyStepsDict[word].py) return easyStepsDict[word].py;
+  return word;
+}
+
+function getEnglishAnnotation(word) {
+  if (easyStepsDict[word] && easyStepsDict[word].en) return easyStepsDict[word].en;
+  return "";
+}
+
+function onSeriesChange() {
+  const seriesSel = document.getElementById('series-select').value;
+  currentSeriesKey = seriesSel;
+  curriculumStages = allSeriesStages[seriesSel] || [];
+  rebuildPresetSelect();
+  currentWorld = 1;
+  initWorld();
+}
+
+function handleVocabFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    const fileName = file.name.replace(/\.[^/.]+$/, "");
+    
+    multiSeriesRawData[fileName] = content;
+    allSeriesStages[fileName] = parseTextToStages(content, fileName);
+    
+    try {
+      let customData = {};
+      const existing = localStorage.getItem('super_mario_custom_vocabularies');
+      if (existing) customData = JSON.parse(existing);
+      customData[fileName] = content;
+      localStorage.setItem('super_mario_custom_vocabularies', JSON.stringify(customData));
+    } catch (err) {
+      console.error("Failed to save vocabularies to localStorage:", err);
+    }
+    
+    const seriesSel = document.getElementById('series-select');
+    let exists = false;
+    for (let i = 0; i < seriesSel.options.length; i++) {
+      if (seriesSel.options[i].value === fileName) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists) {
+      let opt = document.createElement('option');
+      opt.value = fileName;
+      opt.innerText = `📁 ${fileName} (已保存)`;
+      seriesSel.appendChild(opt);
+    }
+    
+    seriesSel.value = fileName;
+    currentSeriesKey = fileName;
+    curriculumStages = allSeriesStages[fileName];
+    
+    rebuildPresetSelect();
+    currentWorld = 1;
+    initWorld();
+    alert(`成功加载并永久保存词汇文件: ${file.name}！`);
+  };
+  reader.readAsText(file);
+}
+
+function deleteCurrentCustomVocab() {
+  const seriesSel = document.getElementById('series-select');
+  const selectedKey = seriesSel.value;
+
+  if (defaultBuiltinKeys.includes(selectedKey)) {
+    alert("内置教材体系无法删除！");
+    return;
+  }
+
+  if (confirm(`确定要删除自定义词汇表 "${selectedKey}" 吗？`)) {
+    delete multiSeriesRawData[selectedKey];
+    delete allSeriesStages[selectedKey];
+
+    try {
+      const existing = localStorage.getItem('super_mario_custom_vocabularies');
+      if (existing) {
+        let customData = JSON.parse(existing);
+        delete customData[selectedKey];
+        localStorage.setItem('super_mario_custom_vocabularies', JSON.stringify(customData));
+      }
+    } catch (err) {
+      console.error("Failed to delete from localStorage:", err);
+    }
+
+    for (let i = 0; i < seriesSel.options.length; i++) {
+      if (seriesSel.options[i].value === selectedKey) {
+        seriesSel.remove(i);
+        break;
+      }
+    }
+
+    seriesSel.value = "HSK1";
+    currentSeriesKey = "HSK1";
+    curriculumStages = allSeriesStages["HSK1"];
+    rebuildPresetSelect();
+    currentWorld = 1;
+    initWorld();
+    alert(`词汇表 "${selectedKey}" 已成功删除！`);
+  }
+}
+
+function rebuildPresetSelect() {
+  const sel = document.getElementById('preset-select');
+  sel.innerHTML = '';
+  curriculumStages.forEach(s => {
+    let opt = document.createElement('option');
+    opt.value = s.key;
+    opt.innerText = `${s.name} (${s.words.length} words)`;
+    sel.appendChild(opt);
+  });
+}
+
+function onPresetChange() {
+  const sel = document.getElementById('preset-select').value;
+  const foundIdx = curriculumStages.findIndex(s => s.key === sel);
+  if (foundIdx !== -1) {
+    currentWorld = foundIdx + 1;
+    initWorld();
+  }
+}
+
+function addEnglishWordFromEudic() {
+  const inputEl = document.getElementById('english-input');
+  const query = inputEl.value.trim().toLowerCase();
+  if (!query) return;
+  let matchedZh = null;
+  for (let zh in easyStepsDict) {
+    if (easyStepsDict[zh].en.toLowerCase() === query || easyStepsDict[zh].en.toLowerCase().includes(query)) {
+      matchedZh = zh;
+      break;
+    }
+  }
+  if (matchedZh) {
+    appendWordToCustomList(matchedZh);
+    inputEl.value = '';
+  } else {
+    alert(`No exact match found for English meaning "${query}".`);
+  }
+}
+
+function appendWordToCustomList(zhWord) {
+  const customInput = document.getElementById('custom-words');
+  let currentList = customInput.value.split(/[,，\s]+/).map(w => w.trim()).filter(w => w.length > 0);
+  if (!currentList.includes(zhWord)) {
+    currentList.push(zhWord);
+    customInput.value = currentList.join(', ');
+    updateWords();
+  } else {
+    alert(`"${zhWord}" is already in the list!`);
+  }
+}
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function ensureAudio() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, type, duration, gainVal = 0.15) {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  gain.gain.setValueAtTime(gainVal, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+function playSpawningSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(150, now);
+  osc.frequency.linearRampToValueAtTime(320, now + 0.18);
+  osc.frequency.linearRampToValueAtTime(520, now + 0.35);
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.38);
+}
+
+function playCoinSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(987.77, now);
+  osc.frequency.setValueAtTime(1318.51, now + 0.08);
+  gain.gain.setValueAtTime(0.18, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.4);
+}
+
+function playStompSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(260, now);
+  osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.15);
+}
+
+function playDeathSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(380, now);
+  osc.frequency.linearRampToValueAtTime(180, now + 0.2);
+  osc.frequency.linearRampToValueAtTime(80, now + 0.6);
+  gain.gain.setValueAtTime(0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.65);
+}
+
+function playGameOverJingle() {
+  ensureAudio();
+  const notes = [
+    { f: 523, d: 0.15 }, { f: 494, d: 0.15 }, { f: 440, d: 0.15 },
+    { f: 392, d: 0.35 }, { f: 330, d: 0.35 }, { f: 261, d: 0.6 }
+  ];
+  let delay = 0;
+  notes.forEach(n => {
+    setTimeout(() => playTone(n.f, 'sawtooth', n.d, 0.22), delay * 1000);
+    delay += n.d;
+  });
+}
+
+function playClearFanfare() {
+  ensureAudio();
+  const notes = [
+    { f: 392, d: 0.12 }, { f: 523, d: 0.12 }, { f: 659, d: 0.12 },
+    { f: 784, d: 0.12 }, { f: 659, d: 0.12 }, { f: 784, d: 0.36 }
+  ];
+  let delay = 0;
+  notes.forEach(n => {
+    setTimeout(() => playTone(n.f, 'triangle', n.d, 0.22), delay * 1000);
+    delay += n.d;
+  });
+}
+
+let localVoices = [];
+function loadVoices() {
+  if ('speechSynthesis' in window) localVoices = window.speechSynthesis.getVoices();
+}
+if ('speechSynthesis' in window) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function findGentleVoice() {
+  if (!localVoices.length && 'speechSynthesis' in window) localVoices = window.speechSynthesis.getVoices();
+  const keywords = ['xiaoxiao', 'tingting', 'ting-ting', 'sinji', 'huihui', 'natural', 'chinese', 'zh-cn'];
+  for (let kw of keywords) {
+    const match = localVoices.find(v => (v.lang.includes('zh') || v.lang.includes('cmn')) && v.name.toLowerCase().includes(kw));
+    if (match) return match;
+  }
+  return localVoices.find(v => v.lang.includes('zh') || v.lang.includes('cmn'));
+}
+
+function playAudio() {
+  if (!currentTarget || !('speechSynthesis' in window) || isClearing || isDying || isSpawning || allQuestionsCleared) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(currentTarget);
+  utter.lang = 'zh-CN';
+  utter.rate = 0.72;
+  utter.pitch = 1.05;
+  const v = findGentleVoice();
+  if (v) utter.voice = v;
+  window.speechSynthesis.speak(utter);
+}
+
+let currentWorld = 1;
+function getStageNum() {
+  return ((currentWorld - 1) % 8) + 1;
+}
+
+function getCurrentCurriculum() {
+  if (!curriculumStages.length) return { name: "Default", words: ["你好"] };
+  const idx = (currentWorld - 1) % curriculumStages.length;
+  return curriculumStages[idx];
+}
+
+function getWorldDisplay() {
+  const curr = getCurrentCurriculum();
+  return `${curr.name} (Stage ${currentWorld})`;
+}
+
+let stageTargetQueue = [];
+let currentStep = 0;
+let currentTarget = "";
+let score = 0;
+let allQuestionsCleared = false; 
+let isClearing = false;    
+let isDying = false;
+let isSpawning = false;
+let hp = 3;
+
+let dynamicSolidBricks = [];
+let dynamicQuestionBlocks = [];
+let dynamicPiranhas = [];
+let dynamicHammerBros = [];
+let dynamicStage5Enemies = [];
+
+const keys = { left: false, right: false };
+let posX = 100;
+let posY = 64;
+let prevPosY = 64;
+let velX = 0;
+let velY = 0;
+let facingRight = true;
+let isGrounded = true;
+
+const ACCEL = 0.85;
+const FRICTION = 0.82;
+const MAX_SPEED = 5.8;
+let JUMP_FORCE = 16.6;
+const GRAVITY = 0.80;
+const MARIO_W = 38;
+const MARIO_H = 44;
+
+const goombas = [
+  { elId: 'goomba1', x: 390, y: 64, vx: -1.4, minX: 220, maxX: 460, alive: true },
+  { elId: 'goomba2', x: 750, y: 64, vx: 1.4, minX: 710, maxX: 820, alive: true }
+];
+
+let rightCastleDoorX = 890;
+
+function updateHUD() {
+  document.getElementById('hearts').innerText = "❤️".repeat(Math.max(0, hp)) + "🖤".repeat(Math.max(0, 3 - hp));
+  document.getElementById('score').innerText = score;
+  document.getElementById('txt-world').innerText = getWorldDisplay();
+
+  const totalWords = stageTargetQueue.length || 1;
+  if (allQuestionsCleared) {
+    document.getElementById('progress').innerHTML = `<span style="color:#2ecc71; font-weight:bold;">All Cleared! Walk to Goal 👉</span>`;
+  } else {
+    document.getElementById('progress').innerText = `${Math.min(totalWords, currentStep + 1)}/${totalWords}`;
+  }
+}
+
+function renderMapEnvironment() {
+  const container = document.getElementById('game-container');
+  const leftC = document.getElementById('left-castle-container');
+  const rightC = document.getElementById('right-castle-container');
+  const decor = document.getElementById('world2-decorations');
+  const piranhaBox = document.getElementById('piranha-container');
+  const hammerBox = document.getElementById('hammer-bro-container');
+  const ground = document.getElementById('stage-ground');
+  const goomba1El = document.getElementById('goomba1');
+  const goomba2El = document.getElementById('goomba2');
+
+  leftC.innerHTML = '';
+  rightC.innerHTML = '';
+  decor.innerHTML = '';
+  piranhaBox.innerHTML = '';
+  hammerBox.innerHTML = '';
+  dynamicPiranhas = [];
+  dynamicHammerBros = [];
+  dynamicStage5Enemies = [];
+
+  const stage = getStageNum();
+
+  if (stage === 1) {
+    container.style.background = "#5c94fc";
+    ground.className = "ground";
+    ground.style.display = 'block';
+    rightCastleDoorX = 890;
+    goomba1El.style.display = 'block';
+    goomba2El.style.display = 'block';
+
+    leftC.innerHTML = `
+      <svg id="left-big-castle" viewBox="0 0 140 250">
+        <defs>
+          <pattern id="castle-brick-w1" width="16" height="8" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill="#b84418" stroke="#5c1800" stroke-width="1"/>
+            <line x1="0" y1="0" x2="16" y2="0" stroke="#fce4d6" stroke-width="0.8"/>
+            <line x1="8" y1="4" x2="8" y2="8" stroke="#5c1800" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="140" width="140" height="110" fill="url(#castle-brick-w1)"/>
+        <path d="M 12 250 L 12 200 Q 24 185 36 200 L 36 250 Z" fill="#000"/>
+        <path d="M 52 250 L 52 200 Q 64 185 76 200 L 76 250 Z" fill="#000"/>
+        <path d="M 92 250 L 92 200 Q 104 185 116 200 L 116 250 Z" fill="#000"/>
+        <path d="M 0 140 L 0 128 L 12 128 L 12 140 L 26 140 L 26 128 L 38 128 L 38 140 L 52 140 L 52 128 L 64 128 L 64 140 L 78 140 L 78 128 L 90 128 L 90 140 L 104 140 L 104 128 L 116 128 L 116 140 L 128 140 L 128 128 L 140 128 L 140 140 Z" fill="#b84418" stroke="#5c1800"/>
+        <rect x="0" y="80" width="105" height="60" fill="url(#castle-brick-w1)"/>
+        <path d="M 22 140 L 22 110 Q 32 98 42 110 L 42 140 Z" fill="#000"/>
+        <path d="M 58 140 L 58 110 Q 68 98 78 110 L 78 140 Z" fill="#000"/>
+        <path d="M 0 80 L 0 68 L 14 68 L 14 80 L 28 80 L 28 68 L 42 68 L 42 80 L 56 80 L 56 68 L 70 68 L 70 80 L 84 80 L 84 68 L 98 68 L 98 80 L 105 80 Z" fill="#b84418" stroke="#5c1800"/>
+        <rect x="18" y="24" width="70" height="56" fill="url(#castle-brick-w1)"/>
+        <path d="M 43 76 L 43 50 Q 53 40 63 50 L 63 76 Z" fill="#000"/>
+        <path d="M 18 24 L 18 12 L 30 12 L 30 24 L 46 24 L 46 12 L 58 12 L 58 24 L 74 24 L 74 12 L 88 12 L 88 24 Z" fill="#b84418" stroke="#5c1800"/>
+      </svg>
+    `;
+
+    rightC.innerHTML = `
+      <svg id="right-small-castle" viewBox="0 0 130 140">
+        <defs>
+          <pattern id="small-brick-w1" width="14" height="7" patternUnits="userSpaceOnUse">
+            <rect width="14" height="7" fill="#b84418" stroke="#5c1800" stroke-width="0.8"/>
+            <line x1="0" y1="0" x2="14" y2="0" stroke="#fce4d6" stroke-width="0.6"/>
+            <line x1="7" y1="3.5" x2="7" y2="7" stroke="#5c1800" stroke-width="0.8"/>
+          </pattern>
+        </defs>
+        <rect x="12" y="90" width="6" height="50" fill="#f4a261" stroke="#5c1800" stroke-width="1"/>
+        <circle cx="15" cy="85" r="10" fill="#2ecc71" stroke="#1b5e20" stroke-width="2"/>
+        <rect x="110" y="105" width="6" height="35" fill="#f4a261" stroke="#5c1800"/>
+        <rect x="120" y="112" width="6" height="28" fill="#f4a261" stroke="#5c1800"/>
+        <line x1="106" y1="116" x2="128" y2="116" stroke="#5c1800" stroke-width="3"/>
+        <line x1="106" y1="128" x2="128" y2="128" stroke="#5c1800" stroke-width="3"/>
+        <rect x="25" y="60" width="80" height="80" fill="url(#small-brick-w1)"/>
+        <path d="M 25 60 L 25 48 L 36 48 L 36 60 L 48 60 L 48 48 L 60 48 L 60 60 L 72 60 L 72 48 L 84 48 L 84 60 L 94 60 L 94 48 L 105 48 L 105 60 Z" fill="#b84418" stroke="#5c1800"/>
+        <path d="M 52 140 L 52 92 Q 65 76 78 92 L 78 140 Z" fill="#000"/>
+        <rect x="40" y="16" width="50" height="44" fill="url(#small-brick-w1)"/>
+        <path d="M 40 16 L 40 5 L 50 5 L 50 16 L 62 16 L 62 5 L 72 5 L 72 16 L 82 16 L 82 5 L 90 5 L 90 16 Z" fill="#b84418" stroke="#5c1800"/>
+        <rect x="48" y="24" width="8" height="18" rx="2" fill="#000"/>
+        <rect x="74" y="24" width="8" height="18" rx="2" fill="#000"/>
+      </svg>
+    `;
+  } else if (stage === 2) {
+    container.style.background = "#5c94fc";
+    ground.className = "ground world-2-ground";
+    ground.style.display = 'block';
+    rightCastleDoorX = 890;
+    goomba1El.style.display = 'block';
+    goomba2El.style.display = 'block';
+
+    leftC.innerHTML = `
+      <svg style="position:absolute; bottom:64px; left:0; width:130px; height:150px; z-index:8; pointer-events:none;" viewBox="0 0 130 150">
+        <defs>
+          <pattern id="red-brick-pattern" width="16" height="8" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill="#d35400" stroke="#000" stroke-width="0.8"/>
+            <line x1="0" y1="0" x2="16" y2="0" stroke="#fce4d6" stroke-width="0.6"/>
+            <line x1="8" y1="4" x2="8" y2="8" stroke="#000" stroke-width="0.8"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="65" width="130" height="85" fill="url(#red-brick-pattern)"/>
+        <path d="M 0 65 L 0 52 L 15 52 L 15 65 L 30 65 L 30 52 L 45 52 L 45 65 L 60 65 L 60 52 L 75 52 L 75 65 L 90 65 L 90 52 L 105 52 L 105 65 L 120 65 L 120 52 L 130 52 L 130 65 Z" fill="#d35400" stroke="#000" stroke-width="1.2"/>
+        <rect x="25" y="20" width="80" height="45" fill="url(#red-brick-pattern)"/>
+        <path d="M 25 20 L 25 8 L 40 8 L 40 20 L 55 20 L 55 8 L 70 8 L 70 20 L 85 20 L 85 8 L 100 8 L 100 20 L 105 20 L 105 20 Z" fill="#d35400" stroke="#000" stroke-width="1.2"/>
+        <rect x="40" y="32" width="10" height="18" rx="2" fill="#000"/>
+        <rect x="75" y="32" width="10" height="18" rx="2" fill="#000"/>
+        <path d="M 50 150 L 50 95 Q 65 80 80 95 L 80 150 Z" fill="#000"/>
+      </svg>
+    `;
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="left:280px; bottom:64px; width:30px; height:50px;" viewBox="0 0 30 50">
+        <rect x="12" y="30" width="6" height="20" fill="#f4a261" stroke="#000" stroke-width="1"/>
+        <ellipse cx="15" cy="20" rx="14" ry="12" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <line x1="10" y1="18" x2="12" y2="18" stroke="#000" stroke-width="2"/>
+        <line x1="18" y1="18" x2="20" y2="18" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="left:335px; bottom:64px; width:30px; height:75px;" viewBox="0 0 30 75">
+        <rect x="12" y="45" width="6" height="30" fill="#f4a261" stroke="#000" stroke-width="1"/>
+        <ellipse cx="15" cy="40" rx="14" ry="9" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="15" cy="27" rx="14" ry="9" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="15" cy="14" rx="14" ry="9" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="left:370px; bottom:64px; width:90px; height:24px;" viewBox="0 0 90 24">
+        <circle cx="10" cy="12" r="10" fill="#c85a2b" stroke="#000" stroke-width="1"/>
+        <rect x="8" y="12" width="4" height="12" fill="#fff" stroke="#000" stroke-width="1"/>
+        <circle cx="32" cy="12" r="10" fill="#c85a2b" stroke="#000" stroke-width="1"/>
+        <rect x="30" y="12" width="4" height="12" fill="#fff" stroke="#000" stroke-width="1"/>
+        <circle cx="54" cy="12" r="10" fill="#c85a2b" stroke="#000" stroke-width="1"/>
+        <rect x="52" y="12" width="4" height="12" fill="#fff" stroke="#000" stroke-width="1"/>
+        <circle cx="76" cy="12" r="10" fill="#c85a2b" stroke="#000" stroke-width="1"/>
+        <rect x="74" y="12" width="4" height="12" fill="#fff" stroke="#000" stroke-width="1"/>
+      </svg>
+      <svg class="scene-decor" style="left:780px; bottom:64px; width:45px; height:45px;" viewBox="0 0 45 45">
+        <rect x="2" y="0" width="41" height="14" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <rect x="6" y="14" width="33" height="31" fill="#27ae60" stroke="#000" stroke-width="2"/>
+      </svg>
+    `;
+
+    rightC.innerHTML = `
+      <svg class="scene-decor" style="left:760px; bottom:64px; width:65px; height:320px; z-index:8;" viewBox="0 0 65 320">
+        <circle cx="48" cy="18" r="9" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <rect x="45" y="27" width="6" height="265" fill="#78c850" stroke="#000" stroke-width="1.2"/>
+        <polygon points="45,35 10,50 45,65" fill="#fff" stroke="#000" stroke-width="1.5"/>
+        <circle cx="34" cy="50" r="7" fill="none" stroke="#2ecc71" stroke-width="2"/>
+        <line x1="34" y1="43" x2="34" y2="57" stroke="#2ecc71" stroke-width="1.5"/>
+        <line x1="34" y1="50" x2="29" y2="55" stroke="#2ecc71" stroke-width="1.5"/>
+        <line x1="34" y1="50" x2="39" y2="55" stroke="#2ecc71" stroke-width="1.5"/>
+        <rect x="36" y="292" width="24" height="24" fill="#c66020" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg style="position:absolute; bottom:64px; left:830px; width:145px; height:180px; z-index:8; pointer-events:none;" viewBox="0 0 145 180">
+        <defs>
+          <pattern id="castle2-brick" width="16" height="8" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill="#d35400" stroke="#000" stroke-width="0.8"/>
+            <line x1="0" y1="0" x2="16" y2="0" stroke="#fce4d6" stroke-width="0.6"/>
+            <line x1="8" y1="4" x2="8" y2="8" stroke="#000" stroke-width="0.8"/>
+          </pattern>
+        </defs>
+        <rect x="5" y="80" width="135" height="100" fill="url(#castle2-brick)"/>
+        <path d="M 5 80 L 5 66 L 18 66 L 18 80 L 32 80 L 32 66 L 45 66 L 45 80 L 95 80 L 95 66 L 108 66 L 108 80 L 122 80 L 122 66 L 135 66 L 135 80 Z" fill="#d35400" stroke="#000" stroke-width="1.2"/>
+        <rect x="35" y="30" width="75" height="45" fill="url(#castle2-brick)"/>
+        <path d="M 35 30 L 35 18 L 47 18 L 47 30 L 60 30 L 60 18 L 72 18 L 72 30 L 85 30 L 85 18 L 97 18 L 97 30 L 110 30 L 110 18 L 110 30 Z" fill="#d35400" stroke="#000" stroke-width="1.2"/>
+        <rect x="50" y="44" width="12" height="22" rx="2" fill="#000"/>
+        <rect x="83" y="44" width="12" height="22" rx="2" fill="#000"/>
+        <path d="M 58 180 L 58 115 Q 72 98 86 115 L 86 180 Z" fill="#000"/>
+      </svg>
+    `;
+  } else if (stage === 3) {
+    container.style.background = "#bdf4d4";
+    ground.className = "ground world-3-water";
+    ground.style.display = 'block';
+    rightCastleDoorX = 930;
+    goomba1El.style.display = 'none';
+    goomba2El.style.display = 'none';
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="right:40px; top:25px; width:52px; height:50px;" viewBox="0 0 52 50">
+        <rect x="8" y="4" width="36" height="42" rx="18" fill="#fff" stroke="#000" stroke-width="3"/>
+        <circle cx="20" cy="22" r="3" fill="#000"/>
+        <circle cx="32" cy="22" r="3" fill="#000"/>
+        <path d="M 22 30 Q 26 36 30 30" fill="none" stroke="#000" stroke-width="3"/>
+      </svg>
+      <svg class="scene-decor" style="left:630px; bottom:110px; width:30px; height:24px;" viewBox="0 0 30 24">
+        <ellipse cx="15" cy="12" rx="13" ry="10" fill="#e74c3c" stroke="#000" stroke-width="1.5"/>
+        <circle cx="8" cy="9" r="4" fill="#fff"/>
+        <circle cx="7" cy="9" r="1.5" fill="#000"/>
+        <polygon points="26,12 32,5 32,19" fill="#fff" stroke="#000" stroke-width="1"/>
+        <path d="M 2 12 Q 6 15 2 18 Z" fill="#fff" stroke="#000"/>
+      </svg>
+      <svg class="scene-decor" style="left:920px; bottom:110px; width:30px; height:24px;" viewBox="0 0 30 24">
+        <ellipse cx="15" cy="12" rx="13" ry="10" fill="#e74c3c" stroke="#000" stroke-width="1.5"/>
+        <circle cx="8" cy="9" r="4" fill="#fff"/>
+        <circle cx="7" cy="9" r="1.5" fill="#000"/>
+        <polygon points="26,12 32,5 32,19" fill="#fff" stroke="#000" stroke-width="1"/>
+        <path d="M 2 12 Q 6 15 2 18 Z" fill="#fff" stroke="#000"/>
+      </svg>
+      <svg class="scene-decor" style="left:90px; bottom:145px; width:170px; height:22px;" viewBox="0 0 170 22">
+        <pattern id="bridge-pat" width="14" height="20" patternUnits="userSpaceOnUse">
+          <rect x="1" y="2" width="4" height="16" fill="#fff" stroke="#000" stroke-width="1"/>
+          <circle cx="7" cy="15" r="4" fill="#5dade2" stroke="#000" stroke-width="1"/>
+        </pattern>
+        <rect width="170" height="20" fill="url(#bridge-pat)"/>
+      </svg>
+      <svg class="scene-decor" style="left:345px; bottom:145px; width:175px; height:22px;" viewBox="0 0 175 22">
+        <rect width="175" height="20" fill="url(#bridge-pat)"/>
+      </svg>
+      <svg class="scene-decor" style="left:605px; bottom:145px; width:135px; height:22px;" viewBox="0 0 135 22">
+        <rect width="135" height="20" fill="url(#bridge-pat)"/>
+      </svg>
+      <svg class="scene-decor" style="left:825px; bottom:145px; width:155px; height:22px;" viewBox="0 0 155 22">
+        <rect width="155" height="20" fill="url(#bridge-pat)"/>
+      </svg>
+    `;
+
+    const pipeList = [
+      { x: 0, w: 90, h: 100 },
+      { x: 260, w: 85, h: 180, hasPiranha: true },
+      { x: 520, w: 85, h: 125 },
+      { x: 740, w: 85, h: 125, hasPiranha: true }
+    ];
+
+    pipeList.forEach(p => {
+      const pEl = document.createElement('div');
+      pEl.className = 'scene-decor';
+      pEl.style.left = p.x + 'px';
+      pEl.style.bottom = '50px';
+      pEl.style.width = p.w + 'px';
+      pEl.style.height = p.h + 'px';
+      pEl.style.zIndex = '7';
+
+      pEl.innerHTML = `
+        <svg width="${p.w}" height="${p.h}" viewBox="0 0 ${p.w} ${p.h}">
+          <rect x="0" y="0" width="${p.w}" height="28" fill="#2ecc71" stroke="#000" stroke-width="2.5"/>
+          <line x1="8" y1="2" x2="8" y2="26" stroke="#a9dfbf" stroke-width="4"/>
+          <rect x="6" y="28" width="${p.w - 12}" height="${p.h - 28}" fill="#27ae60" stroke="#000" stroke-width="2.5"/>
+          <line x1="14" y1="28" x2="14" y2="${p.h}" stroke="#a9dfbf" stroke-width="4"/>
+        </svg>
+      `;
+      decor.appendChild(pEl);
+
+      if (p.hasPiranha) {
+        const plantEl = document.createElement('div');
+        plantEl.className = 'piranha-plant';
+        const plantX = p.x + (p.w - 36) / 2;
+        const pipeTopY = 50 + p.h;
+        plantEl.style.left = plantX + 'px';
+        plantEl.style.bottom = pipeTopY + 'px';
+
+        plantEl.innerHTML = `
+          <div class="piranha-head">
+            <svg viewBox="0 0 36 32" width="36" height="32">
+              <path d="M 4 24 C 2 12, 14 0, 32 6 L 22 18 Z" fill="#e74c3c" stroke="#000" stroke-width="2"/>
+              <path d="M 4 24 C 10 32, 28 32, 32 20 L 20 22 Z" fill="#e74c3c" stroke="#000" stroke-width="2"/>
+              <polygon points="12,11 16,14 11,16" fill="#fff"/>
+              <polygon points="18,12 22,16 17,17" fill="#fff"/>
+              <polygon points="14,24 18,21 21,24" fill="#fff"/>
+              <circle cx="8" cy="18" r="2.5" fill="#fff"/>
+              <circle cx="14" cy="7" r="2" fill="#fff"/>
+              <circle cx="20" cy="8" r="2" fill="#fff"/>
+              <circle cx="16" cy="27" r="2" fill="#fff"/>
+            </svg>
+          </div>
+          <svg viewBox="0 0 36 16" width="36" height="16">
+            <rect x="15" y="0" width="6" height="16" fill="#27ae60" stroke="#000" stroke-width="1.5"/>
+            <ellipse cx="8" cy="10" rx="7" ry="3" fill="#2ecc71" stroke="#000" stroke-width="1.2"/>
+            <ellipse cx="28" cy="10" rx="7" ry="3" fill="#2ecc71" stroke="#000" stroke-width="1.2"/>
+          </svg>
+        `;
+        piranhaBox.appendChild(plantEl);
+
+        dynamicPiranhas.push({
+          el: plantEl,
+          x: plantX,
+          baseY: pipeTopY - 68,
+          peakY: pipeTopY - 20,
+          currentY: pipeTopY - 68,
+          speed: 0.9,
+          dir: 1,
+          pauseTimer: 0
+        });
+      }
+    });
+  } else if (stage === 4) {
+    container.style.background = "#b9f4e2";
+    ground.className = "ground world-4-grass";
+    ground.style.display = 'block';
+    rightCastleDoorX = 880;
+    goomba1El.style.display = 'none';
+    goomba2El.style.display = 'none';
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="left: -10px; bottom: 64px; width: 330px; height: 320px; z-index: 4;" viewBox="0 0 330 320">
+        <path d="M 120 320 L 120 120 Q 120 50, 180 50 Q 240 50, 240 120 L 240 320 Z" fill="#009624" stroke="#000" stroke-width="3"/>
+        <circle cx="170" cy="85" r="3" fill="#000"/>
+        <circle cx="200" cy="85" r="3" fill="#000"/>
+        <path d="M 190 320 L 190 190 Q 190 135, 250 135 Q 310 135, 310 190 L 310 320 Z" fill="#00a82d" stroke="#000" stroke-width="3"/>
+        <circle cx="240" cy="170" r="3" fill="#000"/>
+        <circle cx="265" cy="170" r="3" fill="#000"/>
+        <path d="M 55 320 L 55 240 Q 55 180, 120 180 Q 185 180, 185 240 L 185 320 Z" fill="#00bc32" stroke="#000" stroke-width="3"/>
+        <circle cx="105" cy="210" r="3" fill="#000"/>
+        <circle cx="135" cy="210" r="3" fill="#000"/>
+        <path d="M 0 320 L 0 285 Q 0 250, 55 250 Q 110 250, 110 285 L 110 320 Z" fill="#00cf38" stroke="#000" stroke-width="3"/>
+        <circle cx="45" cy="275" r="3" fill="#000"/>
+        <circle cx="70" cy="275" r="3" fill="#000"/>
+        <path d="M 250 320 L 250 280 Q 250 250, 290 250 Q 330 250, 330 280 L 330 320 Z" fill="#00a82d" stroke="#000" stroke-width="3"/>
+        <circle cx="282" cy="272" r="3" fill="#000"/>
+        <circle cx="304" cy="272" r="3" fill="#000"/>
+      </svg>
+      <svg class="scene-decor" style="left: 175px; bottom: 64px; width: 44px; height: 38px; z-index: 5;" viewBox="0 0 44 38">
+        <rect x="2" y="2" width="40" height="34" rx="4" fill="#e67e22" stroke="#000" stroke-width="2"/>
+        <line x1="2" y1="16" x2="42" y2="16" stroke="#000" stroke-width="2"/>
+        <rect x="18" y="12" width="8" height="10" fill="#f1c40f" stroke="#000" stroke-width="1.5"/>
+        <circle cx="22" cy="17" r="1.5" fill="#000"/>
+      </svg>
+      <svg class="scene-decor" style="right: 55px; bottom: 64px; width: 230px; height: 220px; z-index: 4;" viewBox="0 0 230 220">
+        <path d="M 60 220 L 60 110 Q 60 50, 130 50 Q 200 50, 200 110 L 200 220 Z" fill="#009624" stroke="#000" stroke-width="3"/>
+        <circle cx="115" cy="90" r="3" fill="#000"/>
+        <circle cx="145" cy="90" r="3" fill="#000"/>
+        <path d="M 130 220 L 130 140 Q 130 95, 185 95 Q 240 95, 240 140 L 240 220 Z" fill="#00a82d" stroke="#000" stroke-width="3"/>
+        <path d="M 0 220 L 0 170 Q 0 135, 60 135 Q 120 135, 120 170 L 120 220 Z" fill="#00bc32" stroke="#000" stroke-width="3"/>
+        <circle cx="45" cy="160" r="3" fill="#000"/>
+        <circle cx="75" cy="160" r="3" fill="#000"/>
+      </svg>
+    `;
+
+    rightC.innerHTML = `
+      <svg class="scene-decor" style="right: 25px; bottom: 64px; width: 55px; height: 330px; z-index: 8;" viewBox="0 0 55 330">
+        <circle cx="34" cy="18" r="10" fill="#2ecc71" stroke="#000" stroke-width="2.5"/>
+        <line x1="28" y1="28" x2="40" y2="28" stroke="#000" stroke-width="2.5"/>
+        <rect x="31" y="28" width="6" height="268" fill="#58be45" stroke="#000" stroke-width="2"/>
+        <polygon points="31,34 6,56 31,78" fill="#ffffff" stroke="#000" stroke-width="2.5"/>
+        <rect x="20" y="296" width="28" height="26" fill="#c6551d" stroke="#000" stroke-width="2.5"/>
+      </svg>
+    `;
+
+    const broConfigs = [
+      { id: 'hb1', x: 550, y: 64, minX: 420, maxX: 640, vx: 0.9, w: 32, h: 42 },
+      { id: 'hb2', x: 620, y: 337, minX: 430, maxX: 740, vx: -0.9, w: 32, h: 42 }
+    ];
+
+    broConfigs.forEach(bc => {
+      const broEl = document.createElement('div');
+      broEl.id = bc.id;
+      broEl.className = 'hammer-bro';
+      broEl.style.left = bc.x + 'px';
+      broEl.style.bottom = bc.y + 'px';
+
+      broEl.innerHTML = `
+        <svg viewBox="0 0 32 44" width="32" height="44">
+          <path d="M 10 2 Q 22 2, 24 10 L 8 10 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+          <circle cx="16" cy="15" r="9" fill="#f4a261" stroke="#000" stroke-width="1.8"/>
+          <rect x="20" y="13" width="3" height="4" fill="#000"/>
+          <path d="M 18 20 Q 24 22, 26 19" fill="none" stroke="#000" stroke-width="2"/>
+          <ellipse cx="14" cy="27" rx="10" ry="11" fill="#2c3e50" stroke="#000" stroke-width="2"/>
+          <ellipse cx="14" cy="27" rx="6" ry="8" fill="#e67e22"/>
+          <ellipse cx="9" cy="40" rx="6" ry="4" fill="#e67e22" stroke="#000" stroke-width="1.5"/>
+          <ellipse cx="23" cy="40" rx="6" ry="4" fill="#e67e22" stroke="#000" stroke-width="1.5"/>
+          <rect x="23" y="16" width="3" height="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+          <rect x="20" y="13" width="9" height="6" fill="#333" stroke="#000" stroke-width="1.2"/>
+        </svg>
+      `;
+      hammerBox.appendChild(broEl);
+
+      dynamicHammerBros.push({
+        el: broEl,
+        x: bc.x,
+        y: bc.y,
+        minX: bc.minX,
+        maxX: bc.maxX,
+        vx: bc.vx,
+        w: bc.w,
+        h: bc.h,
+        alive: true
+      });
+    });
+  } else if (stage === 5) {
+    container.style.background = "#6b8cff";
+    ground.className = "ground world-5-rocky";
+    ground.style.display = 'block';
+    rightCastleDoorX = 930;
+    goomba1El.style.display = 'none';
+    goomba2El.style.display = 'none';
+
+    leftC.innerHTML = `
+      <svg style="position:absolute; bottom:64px; left:0; width:180px; height:290px; z-index:8; pointer-events:none;" viewBox="0 0 180 290">
+        <defs>
+          <pattern id="w5-castle-brick" width="16" height="8" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill="#c84c0c" stroke="#000" stroke-width="0.8"/>
+            <line x1="0" y1="0" x2="16" y2="0" stroke="#ffd8a8" stroke-width="0.8"/>
+            <line x1="8" y1="4" x2="8" y2="8" stroke="#000" stroke-width="0.8"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="150" width="175" height="140" fill="url(#w5-castle-brick)"/>
+        <path d="M 12 290 L 12 220 Q 28 200 44 220 L 44 290 Z" fill="#000"/>
+        <path d="M 56 290 L 56 220 Q 72 200 88 220 L 88 290 Z" fill="#000"/>
+        <path d="M 100 290 L 100 220 Q 116 200 132 220 L 132 290 Z" fill="#000"/>
+        <path d="M 144 290 L 144 220 Q 160 200 172 220 L 172 290 Z" fill="#000"/>
+        <path d="M 0 150 L 0 134 L 16 134 L 16 150 L 36 150 L 36 134 L 52 134 L 52 150 L 72 150 L 72 134 L 88 134 L 88 150 L 108 150 L 108 134 L 124 134 L 124 150 L 144 150 L 144 134 L 160 134 L 160 150 L 175 150 Z" fill="#c84c0c" stroke="#000" stroke-width="1.5"/>
+        <rect x="0" y="80" width="120" height="70" fill="url(#w5-castle-brick)"/>
+        <path d="M 24 150 L 24 110 Q 38 90 52 110 L 52 150 Z" fill="#000"/>
+        <path d="M 68 150 L 68 110 Q 82 90 96 110 L 96 150 Z" fill="#000"/>
+        <path d="M 0 80 L 0 66 L 16 66 L 16 80 L 36 80 L 36 66 L 52 66 L 52 80 L 72 80 L 72 66 L 88 66 L 88 80 L 104 80 L 104 66 L 120 66 L 120 80 Z" fill="#c84c0c" stroke="#000" stroke-width="1.5"/>
+        <rect x="20" y="24" width="70" height="56" fill="url(#w5-castle-brick)"/>
+        <rect x="32" y="38" width="12" height="24" rx="3" fill="#000"/>
+        <rect x="66" y="38" width="12" height="24" rx="3" fill="#000"/>
+        <path d="M 20 24 L 20 12 L 32 12 L 32 24 L 46 24 L 46 12 L 58 12 L 58 24 L 72 24 L 72 12 L 84 12 L 84 24 L 90 24 Z" fill="#c84c0c" stroke="#000" stroke-width="1.5"/>
+      </svg>
+    `;
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="left:190px; top:80px; width:52px; height:34px;" viewBox="0 0 52 34">
+        <path d="M 12 30 Q 0 30 6 18 Q 8 6 22 8 Q 30 0 40 8 Q 52 10 48 24 Q 52 30 40 30 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="20" cy="18" r="2" fill="#000"/><circle cx="32" cy="18" r="2" fill="#000"/>
+        <path d="M 22 23 Q 26 27 30 23" fill="none" stroke="#000" stroke-width="1.5"/>
+      </svg>
+      <svg class="scene-decor" style="left:390px; top:50px; width:48px; height:32px;" viewBox="0 0 52 34">
+        <path d="M 12 30 Q 0 30 6 18 Q 8 6 22 8 Q 30 0 40 8 Q 52 10 48 24 Q 52 30 40 30 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="20" cy="18" r="2" fill="#000"/><circle cx="32" cy="18" r="2" fill="#000"/>
+        <path d="M 22 23 Q 26 27 30 23" fill="none" stroke="#000" stroke-width="1.5"/>
+      </svg>
+      <svg class="scene-decor" style="left:620px; top:70px; width:90px; height:36px;" viewBox="0 0 90 36">
+        <path d="M 10 32 C 0 32 0 16 14 14 C 20 2 38 4 44 14 C 54 2 72 4 78 14 C 92 16 92 32 80 32 Z" fill="#fff" stroke="#000" stroke-width="2.2"/>
+        <circle cx="26" cy="18" r="2" fill="#000"/><circle cx="38" cy="18" r="2" fill="#000"/><circle cx="58" cy="18" r="2" fill="#000"/><circle cx="70" cy="18" r="2" fill="#000"/>
+        <path d="M 28 24 Q 32 28 36 24" fill="none" stroke="#000" stroke-width="1.5"/><path d="M 60 24 Q 64 28 68 24" fill="none" stroke="#000" stroke-width="1.5"/>
+      </svg>
+      <svg class="scene-decor" style="right:120px; top:50px; width:70px; height:34px;" viewBox="0 0 70 34">
+        <path d="M 10 30 C 0 30 0 16 12 14 C 18 2 34 2 40 14 C 52 6 68 12 64 30 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="26" cy="17" r="2" fill="#000"/><circle cx="42" cy="17" r="2" fill="#000"/>
+        <path d="M 30 23 Q 34 27 38 23" fill="none" stroke="#000" stroke-width="1.5"/>
+      </svg>
+      <svg class="scene-decor" style="left:240px; bottom:64px; width:75px; height:24px;" viewBox="0 0 75 24">
+        <rect x="0" y="8" width="75" height="16" rx="8" fill="#fff" stroke="#000" stroke-width="1.5"/>
+      </svg>
+      <svg class="scene-decor" style="left:330px; bottom:64px; width:65px; height:45px;" viewBox="0 0 65 45">
+        <polygon points="32,2 2,45 63,45" fill="#7f8c8d" stroke="#000" stroke-width="2"/>
+        <polygon points="32,2 22,25 42,25" fill="#bdc3c7"/>
+      </svg>
+      <svg class="scene-decor" style="left:530px; bottom:64px; width:45px; height:20px;" viewBox="0 0 45 20">
+        <rect x="0" y="6" width="45" height="14" rx="7" fill="#fff" stroke="#000" stroke-width="1.2"/>
+      </svg>
+      <svg class="scene-decor" style="right:30px; bottom:64px; width:50px; height:22px;" viewBox="0 0 50 22">
+        <rect x="0" y="6" width="50" height="16" rx="8" fill="#fff" stroke="#000" stroke-width="1.2"/>
+      </svg>
+      <div class="solid-brick" style="right:0; top:45px; width:36px; height:36px;"></div>
+    `;
+
+    const pX = 370;
+    const pW = 56;
+    const lowerH = 120;
+    const upperH = 80;
+
+    const lowerPipe = document.createElement('div');
+    lowerPipe.className = 'scene-decor';
+    lowerPipe.style.left = pX + 'px';
+    lowerPipe.style.bottom = '64px';
+    lowerPipe.style.width = pW + 'px';
+    lowerPipe.style.height = lowerH + 'px';
+    lowerPipe.style.zIndex = '7';
+    lowerPipe.innerHTML = `
+      <svg width="${pW}" height="${lowerH}" viewBox="0 0 ${pW} ${lowerH}">
+        <rect x="0" y="0" width="${pW}" height="24" fill="#ffffff" stroke="#000" stroke-width="2"/>
+        <line x1="6" y1="2" x2="6" y2="22" stroke="#bdc3c7" stroke-width="4"/>
+        <rect x="5" y="24" width="${pW - 10}" height="${lowerH - 24}" fill="#ecf0f1" stroke="#000" stroke-width="2"/>
+        <line x1="10" y1="24" x2="10" y2="${lowerH}" stroke="#bdc3c7" stroke-width="4"/>
+      </svg>
+    `;
+    decor.appendChild(lowerPipe);
+    dynamicSolidBricks.push({ x: pX, y: 64, w: pW, h: lowerH, el: null });
+
+    const upperPipe = document.createElement('div');
+    upperPipe.className = 'scene-decor';
+    upperPipe.style.left = pX + 'px';
+    upperPipe.style.top = '0px';
+    upperPipe.style.width = pW + 'px';
+    upperPipe.style.height = (upperH + 35) + 'px';
+    upperPipe.style.zIndex = '7';
+    upperPipe.innerHTML = `
+      <svg width="${pW}" height="${upperH + 35}" viewBox="0 0 ${pW} ${upperH + 35}">
+        <defs>
+          <pattern id="brick-pat-top" width="14" height="7" patternUnits="userSpaceOnUse">
+            <rect width="14" height="7" fill="#b84418" stroke="#000" stroke-width="0.8"/>
+            <line x1="0" y1="0" x2="14" y2="0" stroke="#ffd8a8" stroke-width="0.6"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="${pW}" height="28" fill="url(#brick-pat-top)" stroke="#000" stroke-width="2"/>
+        <rect x="5" y="28" width="${pW - 10}" height="${upperH - 16}" fill="#ecf0f1" stroke="#000" stroke-width="2"/>
+        <line x1="10" y1="28" x2="10" y2="${upperH + 12}" stroke="#bdc3c7" stroke-width="4"/>
+        <rect x="0" y="${upperH + 12}" width="${pW}" height="22" fill="#ffffff" stroke="#000" stroke-width="2"/>
+        <line x1="6" y1="${upperH + 12}" x2="6" y2="${upperH + 34}" stroke="#bdc3c7" stroke-width="4"/>
+      </svg>
+    `;
+    decor.appendChild(upperPipe);
+    dynamicSolidBricks.push({ x: pX, y: 450 - (upperH + 35), w: pW, h: upperH + 35, el: null });
+
+    const lowerPlant = document.createElement('div');
+    lowerPlant.className = 'piranha-plant';
+    lowerPlant.style.left = (pX + (pW - 36) / 2) + 'px';
+    const lowerPlantPeak = 64 + lowerH;
+    lowerPlant.style.bottom = lowerPlantPeak + 'px';
+    lowerPlant.innerHTML = `
+      <div class="piranha-head">
+        <svg viewBox="0 0 36 32" width="36" height="32">
+          <path d="M 4 24 C 2 12, 14 0, 32 6 L 22 18 Z" fill="#e74c3c" stroke="#000" stroke-width="2"/>
+          <path d="M 4 24 C 10 32, 28 32, 32 20 L 20 22 Z" fill="#e74c3c" stroke="#000" stroke-width="2"/>
+          <polygon points="12,11 16,14 11,16" fill="#fff"/><polygon points="18,12 22,16 17,17" fill="#fff"/><polygon points="14,24 18,21 21,24" fill="#fff"/>
+          <circle cx="8" cy="18" r="2.5" fill="#fff"/><circle cx="14" cy="7" r="2" fill="#fff"/><circle cx="20" cy="8" r="2" fill="#fff"/>
+        </svg>
+      </div>
+      <svg viewBox="0 0 36 16" width="36" height="16">
+        <rect x="15" y="0" width="6" height="16" fill="#e67e22" stroke="#000" stroke-width="1.5"/>
+        <ellipse cx="8" cy="10" rx="7" ry="3" fill="#f39c12" stroke="#000" stroke-width="1.2"/>
+        <ellipse cx="28" cy="10" rx="7" ry="3" fill="#f39c12" stroke="#000" stroke-width="1.2"/>
+      </svg>
+    `;
+    piranhaBox.appendChild(lowerPlant);
+    dynamicPiranhas.push({
+      el: lowerPlant,
+      x: pX + (pW - 36) / 2,
+      baseY: lowerPlantPeak - 44,
+      peakY: lowerPlantPeak + 6,
+      currentY: lowerPlantPeak - 44,
+      speed: 0.6,
+      dir: 1,
+      pauseTimer: 0
+    });
+
+    const upperPlant = document.createElement('div');
+    upperPlant.className = 'piranha-plant';
+    upperPlant.style.left = (pX + (pW - 36) / 2) + 'px';
+    upperPlant.style.transform = 'rotate(180deg)';
+    const upperPlantPeak = 450 - (upperH + 35) - 48;
+    upperPlant.style.bottom = upperPlantPeak + 'px';
+    upperPlant.innerHTML = lowerPlant.innerHTML;
+    piranhaBox.appendChild(upperPlant);
+    dynamicPiranhas.push({
+      el: upperPlant,
+      x: pX + (pW - 36) / 2,
+      baseY: upperPlantPeak + 44,
+      peakY: upperPlantPeak - 6,
+      currentY: upperPlantPeak + 44,
+      speed: 0.6,
+      dir: -1,
+      pauseTimer: 0
+    });
+
+    const enemiesData = [
+      { id: 's5_beetle', type: 'beetle', x: 670, y: 64, vx: 0.5, minX: 580, maxX: 740, w: 28, h: 24 },
+      { id: 's5_k1', type: 'koopa', x: 860, y: 64, vx: 0.5, minX: 810, maxX: 920, w: 28, h: 36 }
+    ];
+
+    enemiesData.forEach(ed => {
+      const enEl = document.createElement('div');
+      enEl.id = ed.id;
+      enEl.className = 'stage5-enemy';
+      enEl.style.left = ed.x + 'px';
+      enEl.style.bottom = ed.y + 'px';
+      enEl.style.width = ed.w + 'px';
+      enEl.style.height = ed.h + 'px';
+
+      if (ed.type === 'beetle') {
+        enEl.innerHTML = `
+          <svg viewBox="0 0 28 24" width="28" height="24">
+            <path d="M 4 20 C 4 6 24 6 24 20 Z" fill="#1e272c" stroke="#000" stroke-width="2"/>
+            <ellipse cx="14" cy="14" rx="8" ry="6" fill="#37474f"/>
+            <circle cx="8" cy="18" r="3.5" fill="#f4a261"/>
+            <circle cx="20" cy="18" r="3.5" fill="#f4a261"/>
+            <rect x="6" y="16" width="3" height="3" fill="#000"/>
+          </svg>
+        `;
+      } else {
+        enEl.innerHTML = `
+          <svg viewBox="0 0 28 36" width="28" height="36">
+            <circle cx="20" cy="8" r="7" fill="#f4a261" stroke="#000" stroke-width="1.5"/>
+            <rect x="22" y="5" width="2" height="4" fill="#000"/>
+            <ellipse cx="12" cy="22" rx="10" ry="11" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+            <line x1="6" y1="22" x2="18" y2="22" stroke="#27ae60" stroke-width="2"/>
+            <ellipse cx="8" cy="33" rx="5" ry="3" fill="#f39c12" stroke="#000" stroke-width="1.5"/>
+            <ellipse cx="18" cy="33" rx="5" ry="3" fill="#f39c12" stroke="#000" stroke-width="1.5"/>
+          </svg>
+        `;
+      }
+      hammerBox.appendChild(enEl);
+
+      dynamicStage5Enemies.push({
+        el: enEl,
+        x: ed.x,
+        y: ed.y,
+        minX: ed.minX,
+        maxX: ed.maxX,
+        vx: ed.vx,
+        w: ed.w,
+        h: ed.h,
+        alive: true
+      });
+    });
+  } else if (stage === 7) {
+    container.style.background = "#98fb98";
+    ground.className = "ground world-7-ground";
+    ground.style.display = 'block';
+    rightCastleDoorX = 890;
+    goomba1El.style.display = 'none';
+    goomba2El.style.display = 'none';
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="left:60px; top:120px; width:52px; height:45px;" viewBox="0 0 52 45">
+        <rect x="6" y="4" width="40" height="36" rx="18" fill="#fff" stroke="#000" stroke-width="2.5"/>
+        <circle cx="18" cy="20" r="3" fill="#000"/><circle cx="34" cy="20" r="3" fill="#000"/>
+        <path d="M 22 26 Q 26 31 30 26" fill="none" stroke="#000" stroke-width="2.5"/>
+      </svg>
+      <svg class="scene-decor" style="left:330px; top:90px; width:52px; height:45px;" viewBox="0 0 52 45">
+        <rect x="6" y="4" width="40" height="36" rx="18" fill="#fff" stroke="#000" stroke-width="2.5"/>
+        <circle cx="18" cy="20" r="3" fill="#000"/><circle cx="34" cy="20" r="3" fill="#000"/>
+        <path d="M 22 26 Q 26 31 30 26" fill="none" stroke="#000" stroke-width="2.5"/>
+      </svg>
+      <svg class="scene-decor" style="right:120px; top:130px; width:52px; height:45px;" viewBox="0 0 52 45">
+        <rect x="6" y="4" width="40" height="36" rx="18" fill="#fff" stroke="#000" stroke-width="2.5"/>
+        <circle cx="18" cy="20" r="3" fill="#000"/><circle cx="34" cy="20" r="3" fill="#000"/>
+        <path d="M 22 26 Q 26 31 30 26" fill="none" stroke="#000" stroke-width="2.5"/>
+      </svg>
+      <svg class="scene-decor" style="right:130px; top:40px; width:75px; height:30px;" viewBox="0 0 75 30">
+        <circle cx="15" cy="15" r="10" fill="#ffd700" stroke="#b8860b" stroke-width="2"/>
+        <circle cx="37" cy="15" r="10" fill="#ffd700" stroke="#b8860b" stroke-width="2"/>
+        <circle cx="59" cy="15" r="10" fill="#ffd700" stroke="#b8860b" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="left:20px; bottom:64px; width:65px; height:35px;" viewBox="0 0 65 35">
+        <ellipse cx="12" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="32" cy="15" rx="16" ry="20" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="52" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="left:240px; bottom:64px; width:65px; height:35px;" viewBox="0 0 65 35">
+        <ellipse cx="12" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="32" cy="15" rx="16" ry="20" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="52" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="left:305px; bottom:64px; width:65px; height:35px;" viewBox="0 0 65 35">
+        <ellipse cx="12" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="32" cy="15" rx="16" ry="20" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="52" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="left:370px; bottom:64px; width:65px; height:35px;" viewBox="0 0 65 35">
+        <ellipse cx="12" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="32" cy="15" rx="16" ry="20" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+        <ellipse cx="52" cy="20" rx="12" ry="15" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="right:0px; bottom:64px; width:160px; height:120px;" viewBox="0 0 160 120">
+        <polygon points="20,120 90,30 160,120" fill="#27ae60" stroke="#000" stroke-width="2.5"/>
+        <polygon points="0,120 50,70 100,120" fill="#2ecc71" stroke="#000" stroke-width="2.5"/>
+        <polygon points="80,120 120,80 160,120" fill="#2ecc71" stroke="#000" stroke-width="2.5"/>
+      </svg>
+    `;
+
+    const enemiesW7 = [
+      { id: 'w7_goomba', type: 'goomba', x: 580, y: 64, vx: -0.8, minX: 450, maxX: 680, w: 28, h: 28 },
+      { id: 'w7_koopa', type: 'koopa', x: 700, y: 64, vx: 0.8, minX: 620, maxX: 820, w: 28, h: 36 }
+    ];
+
+    enemiesW7.forEach(ed => {
+      const enEl = document.createElement('div');
+      enEl.id = ed.id;
+      enEl.className = 'stage5-enemy';
+      enEl.style.left = ed.x + 'px';
+      enEl.style.bottom = ed.y + 'px';
+      enEl.style.width = ed.w + 'px';
+      enEl.style.height = ed.h + 'px';
+
+      if (ed.type === 'goomba') {
+        enEl.innerHTML = `
+          <svg viewBox="0 0 16 16" width="28" height="28">
+            <ellipse cx="8" cy="11" rx="7" ry="5" fill="#ffd8a8"/>
+            <path d="M 3 6 C 2 1, 14 1, 13 6 Z" fill="#9c4100"/>
+            <circle cx="5" cy="5" r="1.5" fill="#fff"/><circle cx="11" cy="5" r="1.5" fill="#fff"/>
+          </svg>
+        `;
+      } else {
+        enEl.innerHTML = `
+          <svg viewBox="0 0 28 36" width="28" height="36">
+            <circle cx="20" cy="8" r="7" fill="#f4a261" stroke="#000" stroke-width="1.5"/>
+            <ellipse cx="12" cy="22" rx="10" ry="11" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+          </svg>
+        `;
+      }
+      hammerBox.appendChild(enEl);
+
+      dynamicStage5Enemies.push({
+        el: enEl,
+        x: ed.x,
+        y: ed.y,
+        minX: ed.minX,
+        maxX: ed.maxX,
+        vx: ed.vx,
+        w: ed.w,
+        h: ed.h,
+        alive: true
+      });
+    });
+
+  } else if (stage === 8) {
+    container.style.background = "#040418";
+    ground.className = "ground world-8-ground";
+    ground.style.display = 'block';
+    rightCastleDoorX = 930;
+    goomba1El.style.display = 'none';
+    goomba2El.style.display = 'none';
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="left:120px; top:60px; width:52px; height:34px;" viewBox="0 0 52 34">
+        <path d="M 12 30 Q 0 30 6 18 Q 8 6 22 8 Q 30 0 40 8 Q 52 10 48 24 Q 52 30 40 30 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+      </svg>
+      <svg class="scene-decor" style="right:150px; top:40px; width:65px; height:32px;" viewBox="0 0 65 32">
+        <path d="M 10 28 C 0 28 0 14 12 12 C 18 2 34 2 40 12 C 50 4 64 10 60 28 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+      </svg>
+      <div style="position:absolute; left:250px; top:90px; width:3px; height:3px; background:#fff; border-radius:50%;"></div>
+      <div style="position:absolute; left:480px; top:45px; width:4px; height:4px; background:#fff; border-radius:50%;"></div>
+      <div style="position:absolute; left:750px; top:80px; width:3px; height:3px; background:#fff; border-radius:50%;"></div>
+    `;
+
+    const pipeListW8 = [
+      { x: 300, w: 45, h: 80, hasPiranha: true },
+      { x: 620, w: 45, h: 110, hasPiranha: true }
+    ];
+
+    pipeListW8.forEach(p => {
+      const pEl = document.createElement('div');
+      pEl.className = 'scene-decor';
+      pEl.style.left = p.x + 'px';
+      pEl.style.bottom = '64px';
+      pEl.style.width = p.w + 'px';
+      pEl.style.height = p.h + 'px';
+      pEl.style.zIndex = '7';
+
+      pEl.innerHTML = `
+        <svg width="${p.w}" height="${p.h}" viewBox="0 0 ${p.w} ${p.h}">
+          <rect x="0" y="0" width="${p.w}" height="24" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+          <rect x="4" y="24" width="${p.w - 8}" height="${p.h - 24}" fill="#27ae60" stroke="#000" stroke-width="2"/>
+        </svg>
+      `;
+      decor.appendChild(pEl);
+
+      if (p.hasPiranha) {
+        const plantEl = document.createElement('div');
+        plantEl.className = 'piranha-plant';
+        const plantX = p.x + (p.w - 36) / 2;
+        const pipeTopY = 64 + p.h;
+        plantEl.style.left = plantX + 'px';
+        plantEl.style.bottom = pipeTopY + 'px';
+
+        plantEl.innerHTML = `
+          <div class="piranha-head">
+            <svg viewBox="0 0 36 32" width="36" height="32">
+              <path d="M 4 24 C 2 12, 14 0, 32 6 L 22 18 Z" fill="#e74c3c" stroke="#000" stroke-width="2"/>
+              <path d="M 4 24 C 10 32, 28 32, 32 20 L 20 22 Z" fill="#e74c3c" stroke="#000" stroke-width="2"/>
+              <polygon points="12,11 16,14 11,16" fill="#fff"/>
+              <circle cx="8" cy="18" r="2.5" fill="#fff"/>
+            </svg>
+          </div>
+          <svg viewBox="0 0 36 16" width="36" height="16">
+            <rect x="15" y="0" width="6" height="16" fill="#27ae60" stroke="#000" stroke-width="1.5"/>
+          </svg>
+        `;
+        piranhaBox.appendChild(plantEl);
+
+        dynamicPiranhas.push({
+          el: plantEl,
+          x: plantX,
+          baseY: pipeTopY - 60,
+          peakY: pipeTopY - 10,
+          currentY: pipeTopY - 60,
+          speed: 0.8,
+          dir: 1,
+          pauseTimer: 0
+        });
+      }
+    });
+
+    const w8Enemies = [
+      { id: 'w8_k2', type: 'koopa', x: 500, y: 64, vx: -0.6, minX: 450, maxX: 580, w: 28, h: 36 },
+      { id: 'w8_k3', type: 'koopa', x: 800, y: 64, vx: 0.6, minX: 740, maxX: 880, w: 28, h: 36 }
+    ];
+
+    w8Enemies.forEach(ed => {
+      const enEl = document.createElement('div');
+      enEl.id = ed.id;
+      enEl.className = 'stage5-enemy';
+      enEl.style.left = ed.x + 'px';
+      enEl.style.bottom = ed.y + 'px';
+      enEl.style.width = ed.w + 'px';
+      enEl.style.height = ed.h + 'px';
+      enEl.innerHTML = `
+        <svg viewBox="0 0 28 36" width="28" height="36">
+          <circle cx="20" cy="8" r="7" fill="#f4a261" stroke="#000" stroke-width="1.5"/>
+          <ellipse cx="12" cy="22" rx="10" ry="11" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+          <line x1="6" y1="22" x2="18" y2="22" stroke="#27ae60" stroke-width="2"/>
+        </svg>
+      `;
+      hammerBox.appendChild(enEl);
+
+      dynamicStage5Enemies.push({
+        el: enEl,
+        x: ed.x,
+        y: ed.y,
+        minX: ed.minX,
+        maxX: ed.maxX,
+        vx: ed.vx,
+        w: ed.w,
+        h: ed.h,
+        alive: true
+      });
+    });
+
+  } else {
+    container.style.background = "#5c94fc";
+    ground.className = "ground world-5-rocky";
+    ground.style.display = 'block';
+    rightCastleDoorX = 930;
+    goomba1El.style.display = 'none';
+    goomba2El.style.display = 'none';
+
+    leftC.innerHTML = `
+      <svg style="position:absolute; bottom:64px; left:0; width:220px; height:260px; z-index:8; pointer-events:none;" viewBox="0 0 220 260">
+        <defs>
+          <pattern id="smb3-castle-brick" width="16" height="8" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill="#c84c0c" stroke="#000" stroke-width="0.8"/>
+            <line x1="0" y1="0" x2="16" y2="0" stroke="#ffd8a8" stroke-width="0.6"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="110" width="210" height="150" fill="url(#smb3-castle-brick)"/>
+        <path d="M 15 260 L 15 210 Q 30 190 45 210 L 45 260 Z" fill="#000"/>
+        <path d="M 65 260 L 65 210 Q 80 190 95 210 L 95 260 Z" fill="#000"/>
+        <path d="M 115 260 L 115 210 Q 130 190 145 210 L 145 260 Z" fill="#000"/>
+        <path d="M 165 260 L 165 210 Q 180 190 195 210 L 195 260 Z" fill="#000"/>
+        <rect x="0" y="50" width="140" height="60" fill="url(#smb3-castle-brick)"/>
+        <path d="M 25 110 L 25 75 Q 40 55 55 75 L 55 110 Z" fill="#000"/>
+        <path d="M 85 110 L 85 75 Q 100 55 115 75 L 115 110 Z" fill="#000"/>
+        <rect x="25" y="0" width="80" height="50" fill="url(#smb3-castle-brick)"/>
+        <rect x="40" y="15" width="14" height="22" rx="3" fill="#000"/>
+        <rect x="76" y="15" width="14" height="22" rx="3" fill="#000"/>
+      </svg>
+    `;
+
+    decor.innerHTML = `
+      <svg class="scene-decor" style="left:560px; top:110px; width:65px; height:32px;" viewBox="0 0 65 32">
+        <path d="M 10 28 C 0 28 0 14 12 12 C 18 2 34 2 40 12 C 50 4 64 10 60 28 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="26" cy="16" r="2" fill="#000"/><circle cx="42" cy="16" r="2" fill="#000"/>
+      </svg>
+      <svg class="scene-decor" style="right:120px; top:80px; width:65px; height:30px;" viewBox="0 0 65 30">
+        <path d="M 10 26 C 0 26 0 12 12 10 C 18 2 34 2 40 10 C 50 4 64 8 60 26 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="26" cy="14" r="2" fill="#000"/><circle cx="42" cy="14" r="2" fill="#000"/>
+      </svg>
+      <svg class="scene-decor" style="right:30px; top:110px; width:95px; height:34px;" viewBox="0 0 95 34">
+        <path d="M 10 30 C 0 30 0 14 14 12 C 20 2 40 2 46 12 C 56 4 78 8 74 30 Z" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="30" cy="16" r="2" fill="#000"/><circle cx="56" cy="16" r="2" fill="#000"/>
+      </svg>
+    `;
+
+    const highPlatform = document.createElement('div');
+    highPlatform.className = 'ground world-5-rocky';
+    highPlatform.style.left = '780px';
+    highPlatform.style.bottom = '0px';
+    highPlatform.style.width = '200px';
+    highPlatform.style.height = '120px';
+    highPlatform.style.display = 'block';
+    decor.appendChild(highPlatform);
+    dynamicSolidBricks.push({ x: 780, y: 0, w: 200, h: 120, el: highPlatform });
+
+    const enemiesData6 = [
+      { id: 's6_k1', type: 'koopa', x: 320, y: 64, vx: 0.6, minX: 250, maxX: 450, w: 28, h: 36 },
+      { id: 's6_k2', type: 'koopa', x: 650, y: 64, vx: -0.6, minX: 550, maxX: 750, w: 28, h: 36 }
+    ];
+
+    enemiesData6.forEach(ed => {
+      const enEl = document.createElement('div');
+      enEl.id = ed.id;
+      enEl.className = 'stage5-enemy';
+      enEl.style.left = ed.x + 'px';
+      enEl.style.bottom = ed.y + 'px';
+      enEl.style.width = ed.w + 'px';
+      enEl.style.height = ed.h + 'px';
+      enEl.innerHTML = `
+        <svg viewBox="0 0 28 36" width="28" height="36">
+          <circle cx="20" cy="8" r="7" fill="#f4a261" stroke="#000" stroke-width="1.5"/>
+          <rect x="22" y="5" width="2" height="4" fill="#000"/>
+          <ellipse cx="12" cy="22" rx="10" ry="11" fill="#2ecc71" stroke="#000" stroke-width="2"/>
+          <line x1="6" y1="22" x2="18" y2="22" stroke="#27ae60" stroke-width="2"/>
+          <ellipse cx="8" cy="33" rx="5" ry="3" fill="#f39c12" stroke="#000" stroke-width="1.5"/>
+          <ellipse cx="18" cy="33" rx="5" ry="3" fill="#f39c12" stroke="#000" stroke-width="1.5"/>
+        </svg>
+      `;
+      hammerBox.appendChild(enEl);
+
+      dynamicStage5Enemies.push({
+        el: enEl,
+        x: ed.x,
+        y: ed.y,
+        minX: ed.minX,
+        maxX: ed.maxX,
+        vx: ed.vx,
+        w: ed.w,
+        h: ed.h,
+        alive: true
+      });
+    });
+  }
+}
+
+function triggerMarioFallAndRestart() {
+  if (isDying || isClearing || isSpawning) return;
+  isDying = true;
+  keys.left = false;
+  keys.right = false;
+  hp--;
+  updateHUD();
+
+  const marioEl = document.getElementById('mario');
+  marioEl.style.zIndex = '50';
+
+  if (hp <= 0) {
+    playGameOverJingle();
+    document.getElementById('gameover-banner').style.display = 'block';
+    const goTimer = setInterval(() => {
+      velY -= 0.85;
+      posY += velY;
+      marioEl.style.bottom = posY + 'px';
+      if (posY < -100) {
+        clearInterval(goTimer);
+        document.getElementById('gameover-banner').style.display = 'none';
+        marioEl.style.zIndex = '15';
+        hp = 3; score = 0;
+        initWorld();
+      }
+    }, 20);
+  } else {
+    playDeathSound();
+    velX = 0;
+    velY = 12;
+    const fallTimer = setInterval(() => {
+      velY -= 0.85;
+      posY += velY;
+      marioEl.style.bottom = posY + 'px';
+      if (posY < -80) {
+        clearInterval(fallTimer);
+        marioEl.style.zIndex = '15';
+        initWorld();
+      }
+    }, 20);
+  }
+}
+
+function startCastleWalkOutSequence() {
+  isSpawning = true;
+  facingRight = true;
+  posX = 40;
+  const stage = getStageNum();
+  posY = (stage === 3) ? 115 : 64;  
+  prevPosY = posY;  
+  velX = 0; velY = 0;
+  isGrounded = true;
+
+  const marioEl = document.getElementById('mario');
+  marioEl.style.opacity = '0';
+  marioEl.style.left = posX + 'px';
+  marioEl.style.bottom = posY + 'px';
+
+  setTimeout(playSpawningSound, 100);
+
+  let walkStep = 0;
+  const walkInterval = setInterval(() => {
+    walkStep++;
+    posX += 1.2;
+    marioEl.style.opacity = Math.min(1, walkStep * 0.08);
+    marioEl.style.left = posX + 'px';
+    if (posX >= 70) {
+      clearInterval(walkInterval);
+      posX = 70;
+      posY = (stage === 3) ? 115 : 64;
+      marioEl.style.bottom = posY + 'px';
+      marioEl.style.opacity = '1';
+      isSpawning = false;
+      setTimeout(playAudio, 300);
+    }
+  }, 25);
+}
+
+function initWorld() {
+  const curr = getCurrentCurriculum();
+  document.getElementById('preset-select').value = curr.key;
+  document.getElementById('custom-words').value = curr.words.join(', ');
+
+  stageTargetQueue = [...curr.words].sort(() => Math.random() - 0.5);
+
+  currentStep = 0;
+  allQuestionsCleared = false;
+  isClearing = false;
+  isDying = false;
+
+  goombas[0].alive = true; goombas[0].x = 390;
+  document.getElementById('goomba1').classList.remove('flattened');
+
+  goombas[1].alive = true; goombas[1].x = 750;
+  document.getElementById('goomba2').classList.remove('flattened');
+
+  document.getElementById('cleared-banner').style.display = 'none';
+
+  renderMapEnvironment();
+  updateHUD();
+  renderBlocks();
+  startCastleWalkOutSequence();
+}
+
+function adminSkipLevel() {
+  if (isClearing) return;
+  ensureAudio();
+  enterCastleAndAdvance();
+}
+
+function renderBlocks() {
+  const container = document.getElementById('bricks-layout-container');
+  container.innerHTML = '';
+  dynamicSolidBricks = [];
+  dynamicQuestionBlocks = [];
+
+  if (currentStep >= stageTargetQueue.length) {
+    allQuestionsCleared = true;
+    currentTarget = "";
+    updateHUD();
+    return;
+  }
+
+  currentTarget = stageTargetQueue[currentStep];
+
+  const curr = getCurrentCurriculum();
+  let otherWords = curr.words.filter(w => w !== currentTarget).sort(() => Math.random() - 0.5);
+  let distractors = otherWords.slice(0, 3);
+  
+  const fallback = ["中", "国", "人", "书"];
+  let fIdx = 0;
+  while (distractors.length < 3) {
+    distractors.push(fallback[fIdx % fallback.length]);
+    fIdx++;
+  }
+
+  let options = [currentTarget, distractors[0], distractors[1], distractors[2]].sort(() => Math.random() - 0.5);
+
+  const getDynamicWidth = (text) => {
+    const charLen = text.length;
+    const enText = getEnglishAnnotation(text);
+    const enLen = enText.length;
+    const base = Math.max(75, charLen * 28 + 24, enLen * 7 + 20);
+    return Math.min(base, 160);
+  };
+
+  let qBlocksData = [];
+  let sBricksData = [];
+
+  const stage = getStageNum();
+
+  if (stage === 1) {
+    const leftSingleX = 250; 
+    const arrayStartX = 410; 
+    const brickY = 160;
+
+    const w0 = getDynamicWidth(options[0]);
+    const w1 = getDynamicWidth(options[1]);
+    const w2 = getDynamicWidth(options[2]);
+    const w3 = getDynamicWidth(options[3]);
+
+    const b0_x = arrayStartX;                     
+    const q1_x = b0_x + 56;                         
+    const b1_x = q1_x + w1;                     
+    const q2_x = b1_x + 56;                       
+    const b2_x = q2_x + w2;                         
+    const q3_x = b1_x + (56 - w3) / 2;
+    const q3_y = 285;
+
+    qBlocksData = [
+      { x: leftSingleX, y: brickY, text: options[0], w: w0 },
+      { x: q1_x, y: brickY, text: options[1], w: w1 },
+      { x: q2_x, y: brickY, text: options[2], w: w2 },
+      { x: q3_x, y: q3_y, text: options[3], w: w3 }
+    ];
+
+    sBricksData = [
+      { x: b0_x, y: brickY, w: 56, h: 56 },
+      { x: b1_x, y: brickY, w: 56, h: 56 },
+      { x: b2_x, y: brickY, w: 56, h: 56 }
+    ];
+  } else if (stage === 2) {
+    const cStartX = 250; 
+    const cBottomY = 175;
+    const cHeight = 140;
+
+    for (let y = cBottomY; y <= cBottomY + cHeight; y += 30) {
+      const el = document.createElement('div');
+      el.className = 'bevel-block';
+      el.style.left = cStartX + 'px';
+      el.style.bottom = y + 'px';
+      container.appendChild(el);
+      dynamicSolidBricks.push({ x: cStartX, y: y, w: 32, h: 30, el: el });
+    }
+    for (let x = cStartX + 32; x <= cStartX + 128; x += 32) {
+      const el = document.createElement('div');
+      el.className = 'solid-brick';
+      el.style.left = x + 'px';
+      el.style.bottom = (cBottomY + cHeight) + 'px';
+      el.style.width = '32px';
+      el.style.height = '32px';
+      container.appendChild(el);
+      dynamicSolidBricks.push({ x: x, y: cBottomY + cHeight, w: 32, h: 32, el: el });
+    }
+    for (let x = cStartX + 32; x <= cStartX + 96; x += 32) {
+      const el = document.createElement('div');
+      el.className = 'solid-brick';
+      el.style.left = x + 'px';
+      el.style.bottom = cBottomY + 'px';
+      el.style.width = '32px';
+      el.style.height = '32px';
+      container.appendChild(el);
+      dynamicSolidBricks.push({ x: x, y: cBottomY + cHeight, w: 32, h: 32, el: el });
+    }
+    const endBevel = document.createElement('div');
+    endBevel.className = 'bevel-block';
+    endBevel.style.left = (cStartX + 128) + 'px';
+    endBevel.style.bottom = cBottomY + 'px';
+    container.appendChild(endBevel);
+    dynamicSolidBricks.push({ x: cStartX + 128, y: cBottomY, w: 32, h: 32, el: endBevel });
+
+    const w0 = getDynamicWidth(options[0]);
+    const w1 = getDynamicWidth(options[1]);
+    const w2 = getDynamicWidth(options[2]);
+    const w3 = getDynamicWidth(options[3]);
+
+    const qRowY = 175;
+    const qRowStartX = 410; 
+    qBlocksData = [
+      { x: 170, y: 165, text: options[0], w: w0 },
+      { x: qRowStartX, y: qRowY, text: options[1], w: w1 },
+      { x: qRowStartX + w1 + 12, y: qRowY, text: options[2], w: w2 },
+      { x: qRowStartX + w1 + w2 + 24, y: qRowY, text: options[3], w: w3 }
+    ];
+  } else if (stage === 3) {
+    dynamicSolidBricks.push({ x: 0, y: 50, w: 90, h: 100 });
+    dynamicSolidBricks.push({ x: 90, y: 140, w: 170, h: 14 });
+    dynamicSolidBricks.push({ x: 260, y: 50, w: 85, h: 180 });
+    dynamicSolidBricks.push({ x: 345, y: 140, w: 175, h: 14 });
+    dynamicSolidBricks.push({ x: 520, y: 50, w: 85, h: 125 });
+    dynamicSolidBricks.push({ x: 605, y: 140, w: 135, h: 14 });
+    dynamicSolidBricks.push({ x: 740, y: 50, w: 85, h: 125 });
+    dynamicSolidBricks.push({ x: 825, y: 140, w: 155, h: 14 });
+
+    sBricksData = [
+      { x: 100, y: 310, w: 35, h: 30 },
+      { x: 135, y: 310, w: 35, h: 30 },
+      { x: 170, y: 310, w: 35, h: 30 },
+      { x: 205, y: 310, w: 35, h: 30 },
+      { x: 420, y: 275, w: 35, h: 30 },
+      { x: 455, y: 275, w: 35, h: 30 },
+      { x: 490, y: 275, w: 35, h: 30 },
+      { x: 670, y: 300, w: 35, h: 30 },
+      { x: 705, y: 300, w: 35, h: 30 },
+      { x: 740, y: 300, w: 35, h: 30 }
+    ];
+
+    qBlocksData = [
+      { x: 120, y: 200, text: options[0], w: getDynamicWidth(options[0]) },
+      { x: 380, y: 190, text: options[1], w: getDynamicWidth(options[1]) },
+      { x: 630, y: 195, text: options[2], w: getDynamicWidth(options[2]) },
+      { x: 810, y: 200, text: options[3], w: getDynamicWidth(options[3]) }
+    ];
+  } else if (stage === 4) {
+    const rowY = 175;
+    const blockH = 56;
+    const solidW = 44;
+
+    const sequence = [
+      { type: 'solid' },
+      { type: 'q', optIdx: 0 },
+      { type: 'solid' },
+      { type: 'q', optIdx: 1 },
+      { type: 'solid' },
+      { type: 'q', optIdx: 2 },
+      { type: 'solid' },
+      { type: 'q', optIdx: 3 },
+      { type: 'solid' }
+    ];
+
+    const qWidths = options.map(opt => getDynamicWidth(opt));
+    const totalRowWidth = (solidW * 5) + qWidths[0] + qWidths[1] + qWidths[2] + qWidths[3];
+    let currentX = Math.round((980 - totalRowWidth) / 2);
+
+    let qIdx = 0;
+    sequence.forEach(item => {
+      if (item.type === 'solid') {
+        sBricksData.push({
+          x: currentX,
+          y: rowY,
+          w: solidW,
+          h: blockH,
+          isSlab: true
+        });
+        currentX += solidW;
+      } else {
+        const optIdx = item.optIdx;
+        const qW = qWidths[optIdx];
+        qBlocksData.push({
+          x: currentX,
+          y: rowY,
+          w: qW,
+          h: blockH,
+          text: options[optIdx],
+          isStrip: true
+        });
+        currentX += qW;
+        qIdx++;
+      }
+    });
+
+    for (let x = 420; x <= 780; x += 40) {
+      sBricksData.push({ x: x, y: 305, w: 40, h: 32 });
+    }
+  } else if (stage === 5) {
+    const b1_x = 530; const b1_y = 165;
+    const b2_x = 625; const b2_y = 270;
+    const b3_x = 720; const b3_y = 175;
+    const b4_x = 815; const b4_y = 280;
+
+    qBlocksData = [
+      { x: b1_x, y: b1_y, text: options[0], w: getDynamicWidth(options[0]) },
+      { x: b2_x, y: b2_y, text: options[1], w: getDynamicWidth(options[1]) },
+      { x: b3_x, y: b3_y, text: options[2], w: getDynamicWidth(options[2]) },
+      { x: b4_x, y: b4_y, text: options[3], w: getDynamicWidth(options[3]) }
+    ];
+
+    sBricksData.push({ x: 370, y: 64, w: 56, h: 120 });
+  } else if (stage === 7) {
+    qBlocksData = [
+      { x: 440, y: 195, text: options[0], w: getDynamicWidth(options[0]) },
+      { x: 680, y: 340, text: options[1], w: getDynamicWidth(options[1]) },
+      { x: 220, y: 350, text: options[2], w: getDynamicWidth(options[2]) },
+      { x: 700, y: 180, text: options[3], w: getDynamicWidth(options[3]) }
+    ];
+
+    sBricksData = [
+      { x: 220, y: 195, w: 100, h: 36 },
+      { x: 420, y: 195, w: 160, h: 55 },
+      { x: 420, y: 140, w: 32, h: 55 },
+      { x: 720, y: 195, w: 80, h: 36 },
+    ];
+  } else if (stage === 8) {
+    qBlocksData = [
+      { x: 150, y: 175, text: options[0], w: getDynamicWidth(options[0]) },
+      { x: 340, y: 295, text: options[1], w: getDynamicWidth(options[1]) },
+      { x: 520, y: 195, text: options[2], w: getDynamicWidth(options[2]) },
+      { x: 760, y: 215, text: options[3], w: getDynamicWidth(options[3]) }
+    ];
+
+    sBricksData = [
+      { x: 110, y: 175, w: 50, h: 40 },
+      { x: 230, y: 175, w: 40, h: 40 },
+      { x: 300, y: 175, w: 80, h: 40 },
+      { x: 490, y: 195, w: 40, h: 40 },
+      { x: 160, y: 295, w: 40, h: 40 },
+      { x: 800, y: 295, w: 40, h: 40 },
+      { x: 380, y: 395, w: 40, h: 40 },
+      { x: 830, y: 215, w: 70, h: 40 }
+    ];
+  } else {
+    const boxX = 380;
+    const boxY = 160;
+    const boxHeight = 180;
+    const bSizeW = 70;
+    const bSizeH = 50;
+
+    sBricksData.push({ x: boxX, y: boxY + boxHeight, w: bSizeW, h: bSizeH });
+    qBlocksData.push({ x: boxX + bSizeW, y: boxY + boxHeight, w: Math.max(bSizeW, getDynamicWidth(options[0])), h: bSizeH, text: options[0] });
+    sBricksData.push({ x: boxX + bSizeW * 2, y: boxY + boxHeight, w: bSizeW, h: bSizeH });
+
+    sBricksData.push({ x: boxX, y: boxY, w: bSizeW, h: bSizeH });
+    qBlocksData.push({ x: boxX + bSizeW, y: boxY, w: Math.max(bSizeW, getDynamicWidth(options[1])), h: bSizeH, text: options[1] });
+    sBricksData.push({ x: boxX + bSizeW * 2, y: boxY, w: bSizeW, h: bSizeH });
+
+    sBricksData.push({ x: boxX, y: boxY + bSizeH, w: bSizeW, h: bSizeH });
+    sBricksData.push({ x: boxX + bSizeW * 2, y: boxY + bSizeH, w: bSizeW, h: bSizeH });
+
+    qBlocksData.push({ x: 660, y: 170, w: getDynamicWidth(options[2]), h: 56, text: options[2] });
+    qBlocksData.push({ x: 820, y: 140, w: getDynamicWidth(options[3]), h: 56, text: options[3] });
+
+    sBricksData.push({ x: 780, y: 220, w: 130, h: 32 });
+  }
+
+  sBricksData.forEach(sb => {
+    const el = document.createElement('div');
+    el.className = sb.isSlab ? 'slab-brick' : 'solid-brick';
+    el.style.left = sb.x + 'px';
+    el.style.bottom = sb.y + 'px';
+    el.style.width = sb.w + 'px';
+    el.style.height = sb.h + 'px';
+    container.appendChild(el);
+    dynamicSolidBricks.push({ x: sb.x, y: sb.y, w: sb.w, h: sb.h, el: el });
+  });
+
+  qBlocksData.forEach(qb => {
+    const charArray = qb.text.split('');
+    const b = document.createElement('div');
+    b.className = 'block';
+    if (qb.isStrip) b.classList.add('w4-strip-block');
+    if (charArray.length > 1) b.classList.add('multi-char');
+    b.style.left = qb.x + 'px';
+    b.style.bottom = qb.y + 'px';
+    
+    const bWidth = qb.w;
+    const bHeight = qb.h || 56;
+    b.style.width = bWidth + 'px'; 
+    b.style.height = bHeight + 'px';
+
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'block-corner-dots';
+    b.appendChild(dotsContainer);
+
+    const zhRow = document.createElement('div');
+    zhRow.className = 'block-zh-row';
+    charArray.forEach(char => {
+      const charSpan = document.createElement('span');
+      charSpan.className = 'block-text-char';
+      charSpan.style.fontSize = charArray.length > 3 ? '16px' : (charArray.length > 2 ? '18px' : '24px');
+      charSpan.innerText = char;
+      zhRow.appendChild(charSpan);
+    });
+    b.appendChild(zhRow);
+
+    const enDiv = document.createElement('div');
+    enDiv.className = 'block-sub-en';
+    const enText = getEnglishAnnotation(qb.text);
+    enDiv.innerText = enText;
+    enDiv.style.fontSize = '12px';
+
+    b.appendChild(enDiv);
+
+    container.appendChild(b);
+    dynamicQuestionBlocks.push({ x: qb.x, y: qb.y, w: bWidth, h: bHeight, text: qb.text, el: b });
+  });
+
+  updateHUD();
+  if (!isSpawning) setTimeout(playAudio, 300);
+}
+
+function updateWords() {
+  const input = document.getElementById('custom-words').value;
+  const list = input.split(/[,，\s]+/).filter(w => w.trim().length > 0);
+  if (list.length >= 4) {
+    stageTargetQueue = [...list].sort(() => Math.random() - 0.5);
+    currentStep = 0;
+    allQuestionsCleared = false;
+    updateHUD();
+    renderBlocks();
+  } else {
+    alert("Please enter at least 4 words!");
+  }
+}
+
+function createHintFlyPop(x, y, text) {
+  const pinyinText = getPinyinOnly(text);
+  const pop = document.createElement('div');
+  pop.className = 'hint-fly-pop';
+  pop.innerText = pinyinText;
+  pop.style.left = (x + 6) + 'px';
+  pop.style.bottom = (y + 58) + 'px';
+  document.getElementById('game-container').appendChild(pop);
+  setTimeout(() => pop.remove(), 950);
+}
+
+function enterCastleAndAdvance() {
+  if (isClearing) return;
+  isClearing = true;
+  keys.left = false;
+  keys.right = false;
+  playClearFanfare();
+
+  const marioEl = document.getElementById('mario');
+  document.getElementById('cleared-banner').style.display = 'block';
+
+  let fadeStep = 0;
+  const fadeTimer = setInterval(() => {
+    fadeStep++;
+    marioEl.style.opacity = Math.max(0, 1 - fadeStep * 0.15);
+    if (fadeStep >= 7) {
+      clearInterval(fadeTimer);
+      marioEl.style.opacity = '0';
+      setTimeout(() => {
+        currentWorld= ((currentWorld) % curriculumStages.length) + 1;
+        initWorld();
+      }, 1800);
+    }
+  }, 40);
+}
+
+function gameLoop() {
+  const stage = getStageNum();
+
+  if (stage === 1 || stage === 2) {
+    goombas.forEach(g => {
+      const el = document.getElementById(g.elId);
+      if (g.alive) {
+        g.x += g.vx;
+        if (g.x <= g.minX || g.x >= g.maxX) g.vx *= -1;
+        el.style.left = g.x + 'px';
+
+        if (!isDying && !isClearing && !isSpawning) {
+          if (posX + 34 > g.x && posX < g.x + 36 && posY + 40 > g.y && posY < g.y + 36) {
+            if (velY < 0 && posY >= g.y + 16) {
+              playStompSound();
+              g.alive = false;
+              el.classList.add('flattened');
+              velY = 11;
+              score += 100;
+              updateHUD();
+              setTimeout(() => {
+                g.alive = true;
+                g.x = (g.minX + g.maxX) / 2;
+                el.classList.remove('flattened');
+              }, 4000);
+            } else {
+              triggerMarioFallAndRestart();
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (stage === 3 || stage === 5 || stage === 8) {
+    dynamicPiranhas.forEach(p => {
+      if (p.pauseTimer > 0) {
+        p.pauseTimer--;
+      } else {
+        p.currentY += p.speed * p.dir;
+        if (p.dir > 0 && p.currentY >= p.peakY) {
+          p.currentY = p.peakY;
+          p.dir = -1;
+          p.pauseTimer = 60;
+        } else if (p.dir < 0 && p.currentY <= p.baseY) {
+          p.currentY = p.baseY;
+          p.dir = 1;
+          p.pauseTimer = 55;
+        }
+      }
+      p.el.style.bottom = p.currentY + 'px';
+
+      if (!isDying && !isClearing && !isSpawning) {
+        const plantTop = p.currentY + 40;
+        const plantBottom = p.currentY + 8;
+        const plantLeft = p.x + 8;
+        const plantRight = p.x + 28;
+
+        if (posX + MARIO_W - 12 > plantLeft && posX + 12 < plantRight && posY + MARIO_H > plantBottom && posY < plantTop) {
+          triggerMarioFallAndRestart();
+        }
+      }
+    });
+  }
+
+  if (stage === 4) {
+    dynamicHammerBros.forEach(hb => {
+      if (hb.alive) {
+        hb.x += hb.vx;
+        if (hb.x <= hb.minX || hb.x >= hb.maxX) hb.vx *= -1;
+        hb.el.style.left = hb.x + 'px';
+        hb.el.style.transform = (hb.vx > 0) ? 'scaleX(-1)' : 'scaleX(1)';
+
+        if (!isDying && !isClearing && !isSpawning) {
+          if (posX + 32 > hb.x && posX < hb.x + hb.w && posY + 38 > hb.y && posY < hb.y + hb.h) {
+            if (velY < 0 && posY >= hb.y + 20) {
+              playStompSound();
+              hb.alive = false;
+              hb.el.classList.add('flattened');
+              velY = 11;
+              score += 200;
+              updateHUD();
+              setTimeout(() => {
+                hb.alive = true;
+                hb.x = (hb.minX + hb.maxX) / 2;
+                hb.el.classList.remove('flattened');
+              }, 4500);
+            } else {
+              triggerMarioFallAndRestart();
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (stage === 5 || stage === 6 || stage === 7 || stage === 8) {
+    dynamicStage5Enemies.forEach(en => {
+      if (en.alive) {
+        en.x += en.vx;
+        if (en.x <= en.minX || en.x >= en.maxX) en.vx *= -1;
+        en.el.style.left = en.x + 'px';
+        en.el.style.transform = (en.vx > 0) ? 'scaleX(-1)' : 'scaleX(1)';
+
+        if (!isDying && !isClearing && !isSpawning) {
+          if (posX + MARIO_W - 10 > en.x && posX + 10 < en.x + en.w && posY + MARIO_H > en.y && posY < en.y + en.h) {
+            if (velY < 0 && posY >= en.y + 12) {
+              playStompSound();
+              en.alive = false;
+              en.el.classList.add('flattened');
+              velY = 11;
+              score += 150;
+              updateHUD();
+              setTimeout(() => {
+                en.alive = true;
+                en.x = (en.minX + en.maxX) / 2;
+                en.el.classList.remove('flattened');
+              }, 4000);
+            } else {
+              triggerMarioFallAndRestart();
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (!isClearing && !isDying && !isSpawning) {
+    if (keys.left) { velX -= ACCEL; facingRight = false; }
+    if (keys.right) { velX += ACCEL; facingRight = true; }
+
+    velX *= isGrounded ? FRICTION : 0.92;
+    if (Math.abs(velX) > MAX_SPEED) velX = Math.sign(velX) * MAX_SPEED;
+    if (Math.abs(velX) < 0.05) velX = 0;
+    posX += velX;
+
+    if (posX < 8) { posX = 8; velX = 0; }
+    if (posX > 940) { posX = 940; velX = 0; }
+
+    prevPosY = posY;
+
+    if (!isGrounded) {
+      velY -= GRAVITY;
+      posY += velY;
+    }
+
+    let onPlatform = false;
+    let platformsToTest = [...dynamicSolidBricks];
+    if (!allQuestionsCleared) platformsToTest = platformsToTest.concat(dynamicQuestionBlocks);
+
+    platformsToTest.forEach(plat => {
+      if (posX + MARIO_W - 8 > plat.x && posX + 8 < plat.x + plat.w) {
+        const platTop = plat.y + plat.h;
+        if (velY <= 0 && prevPosY >= platTop - 8 && posY <= platTop + 4) {
+          posY = platTop;
+          velY = 0;
+          isGrounded = true;
+          onPlatform = true;
+        }
+      }
+    });
+
+    const baseGroundY = (stage === 3) ? 105 : 64;
+
+    if (!isGrounded) {
+      if (!onPlatform && posY <= baseGroundY) {
+        posY = baseGroundY;
+        velY = 0;
+        isGrounded = true;
+      }
+    } else if (!onPlatform && posY > baseGroundY) {
+      isGrounded = false;
+    }
+
+    if (!allQuestionsCleared && velY > 0) {
+      dynamicQuestionBlocks.forEach(qb => {
+        const xOverlap = (posX + MARIO_W - 6 > qb.x) && (posX + 6 < qb.x + qb.w);
+        const headY = posY + MARIO_H;
+        const prevHeadY = prevPosY + MARIO_H;
+        const hitBottom = (prevHeadY <= qb.y + 8 && headY >= qb.y - 12) || (headY >= qb.y - 8 && headY <= qb.y + 28);
+
+        if (xOverlap && hitBottom && velY > 0) {
+          velY = -2.2;
+          posY = qb.y - MARIO_H - 1;
+
+          qb.el.classList.remove('hit-bounce');
+          void qb.el.offsetWidth;
+          qb.el.classList.add('hit-bounce');
+
+          if (qb.text === currentTarget) {
+            playCoinSound();
+            createHintFlyPop(qb.x, qb.y, qb.text);
+            qb.el.style.background = "#2a9d8f";
+            qb.el.style.borderColor = "#1f6f66";
+            qb.el.style.color = "#fff";
+
+            currentStep++;
+            setTimeout(renderBlocks, 500);
+          } else {
+            playDeathSound();
+            qb.el.style.background = "#e63946";
+            qb.el.style.borderColor = "#9d0208";
+            qb.el.style.color = "#fff";
+            setTimeout(playAudio, 350);
+          }
+        }
+      });
+
+      dynamicSolidBricks.forEach(brick => {
+        if (!brick.el) return;
+        const xOverlap = (posX + MARIO_W - 6 > brick.x) && (posX + 6 < brick.x + brick.w);
+        const headY = posY + MARIO_H;
+        const prevHeadY = prevPosY + MARIO_H;
+        const hitBottom = (prevHeadY <= brick.y + 8 && headY >= brick.y - 10) || (headY >= brick.y - 6 && headY <= brick.y + 26);
+
+        if (xOverlap && hitBottom && velY > 0) {
+          velY = -2;
+          posY = brick.y - MARIO_H - 1;
+          brick.el.classList.remove('hit-bounce');
+          void brick.el.offsetWidth;
+          brick.el.classList.add('hit-bounce');
+          playTone(300, 'square', 0.08, 0.1);
+        }
+      });
+    }
+
+    if (allQuestionsCleared && posX >= rightCastleDoorX) {
+      enterCastleAndAdvance();
+    }
+
+    const marioEl = document.getElementById('mario');
+    marioEl.style.left = posX + 'px';
+    marioEl.style.bottom = posY + 'px';
+    const scaleX = facingRight ? 2.8 : -2.8;
+    marioEl.style.transform = `scaleX(${scaleX}) scaleY(2.8)`;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+function bindTouchButton(btnId, keyName, isJump = false) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  const handleStart = (e) => {
+    e.preventDefault();
+    ensureAudio();
+    if (isJump) {
+      if (isGrounded && !isClearing && !isDying && !isSpawning) {
+        velY = JUMP_FORCE;
+        isGrounded = false;
+      }
+    } else {
+      keys[keyName] = true;
+    }
+  };
+
+  const handleEnd = (e) => {
+    e.preventDefault();
+    if (!isJump) keys[keyName] = false;
+  };
+
+  btn.addEventListener('touchstart', handleStart, { passive: false });
+  btn.addEventListener('touchend', handleEnd, { passive: false });
+  btn.addEventListener('mousedown', handleStart);
+  btn.addEventListener('mouseup', handleEnd);
+  btn.addEventListener('mouseleave', handleEnd);
+}
+
+bindTouchButton('btn-left', 'left');
+bindTouchButton('btn-right', 'right');
+bindTouchButton('btn-jump', null, true);
+
+window.addEventListener('keydown', (e) => {
+  ensureAudio();
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (isClearing || isDying || isSpawning) return;
+
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+  
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    if (!e.repeat && isGrounded) {
+      velY = JUMP_FORCE;
+      isGrounded = false;
+    }
+    e.preventDefault();
+  }
+  if (e.code === 'KeyR') playAudio();
+  if (e.code === 'KeyN') adminSkipLevel();
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+});
+
+function initSeriesDropdown() {
+  const seriesSel = document.getElementById('series-select');
+  try {
+    const savedCustomData = localStorage.getItem('super_mario_custom_vocabularies');
+    if (savedCustomData) {
+      const parsedCustom = JSON.parse(savedCustomData);
+      for (let fileName in parsedCustom) {
+        let exists = false;
+        for (let i = 0; i < seriesSel.options.length; i++) {
+          if (seriesSel.options[i].value === fileName) {
+            exists = true;
+            break;
+          }
+        }
+        if (!exists) {
+          let opt = document.createElement('option');
+          opt.value = fileName;
+          opt.innerText = `📁 ${fileName} (已保存)`;
+          seriesSel.appendChild(opt);
+        }
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+initSeriesDropdown();
+document.getElementById('series-select').value = "HSK1";
+rebuildPresetSelect();
+initWorld();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
